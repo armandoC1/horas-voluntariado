@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Voluntariado</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Registro de Voluntariado</h1>
+        </header>
+
+        <main>
+            <section class="dashboard">
+                <div class="stats-card current-cycle">
+                    <h2>Ciclo Actual: <span id="current-cycle">-</span></h2>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="hours-progress"></div>
+                    </div>
+                    <div class="stats">
+                        <p>Horas completadas: <span id="hours-completed">0</span></p>
+                        <p>Horas restantes: <span id="hours-remaining">60</span></p>
+                    </div>
+                </div>
+
+                <div class="stats-card cycles">
+                    <h2>Ciclos</h2>
+                    <div id="cycle-list" class="cycle-list" role="tablist" aria-label="Seleccionar ciclo">
+                        <!-- Ciclos se generarán dinámicamente como botones -->
+                    </div>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <h2>Registrar Nueva Actividad</h2>
+                <form id="volunteer-form">
+                    <div class="form-group">
+                        <label for="activity-name">Nombre de la Actividad</label>
+                        <input type="text" id="activity-name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="activity-date">Día</label>
+                        <input type="date" id="activity-date" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="start-time-hour">Hora de Entrada</label>
+                            <div class="time-input-12h">
+                                <select id="start-time-hour" required>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8" selected>8</option>
+                                    <option value="9">9</option>
+                                    <option value="10">10</option>
+                                    <option value="11">11</option>
+                                    <option value="12">12</option>
+                                </select>
+                                <span>:</span>
+                                <select id="start-time-minute" required>
+                                    <option value="00" selected>00</option>
+                                    <option value="15">15</option>
+                                    <option value="30">30</option>
+                                    <option value="45">45</option>
+                                </select>
+                                <select id="start-time-ampm" required>
+                                    <option value="AM" selected>AM</option>
+                                    <option value="PM">PM</option>
+                                </select>
+                                <input type="hidden" id="start-time" name="start-time">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="end-time-hour">Hora de Salida</label>
+                            <div class="time-input-12h">
+                                <select id="end-time-hour" required>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5" selected>5</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10">10</option>
+                                    <option value="11">11</option>
+                                    <option value="12">12</option>
+                                </select>
+                                <span>:</span>
+                                <select id="end-time-minute" required>
+                                    <option value="00" selected>00</option>
+                                    <option value="15">15</option>
+                                    <option value="30">30</option>
+                                    <option value="45">45</option>
+                                </select>
+                                <select id="end-time-ampm" required>
+                                    <option value="AM">AM</option>
+                                    <option value="PM" selected>PM</option>
+                                </select>
+                                <input type="hidden" id="end-time" name="end-time">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="location">Lugar</label>
+                        <input type="text" id="location" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cycle">Ciclo</label>
+                        <input type="number" id="cycle" min="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="manual-hours">Horas Manuales (opcional)</label>
+                        <input type="number" id="manual-hours" step="0.1" min="0" placeholder="Dejar vacío para cálculo automático">
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">Guardar Actividad</button>
+                </form>
+            </section>
+
+            <section class="activities-section">
+                <div class="section-header">
+                    <h2>Registro de Actividades</h2>
+                    <div class="filter">
+                        <label for="filter-cycle">Filtrar por ciclo:</label>
+                        <select id="filter-cycle">
+                            <option value="all">Todos</option>
+                            <!-- Opciones de ciclo se generarán dinámicamente -->
+                        </select>
+                        <button id="download-csv" class="btn-secondary">
+                            Descargar CSV
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="activities-container">
+                    <table id="activities-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Actividad</th>
+                                <th>Lugar</th>
+                                <th>Entrada</th>
+                                <th>Salida</th>
+                                <th>Horas</th>
+                                <th>Ciclo</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activities-list">
+                            <!-- Actividades se generarán dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="github-section">
+                <h2>Sincronización con GitHub</h2>
+                <div class="github-buttons">
+                    <button id="export-github" class="btn-primary">Generar JSON para GitHub</button>
+                    <div class="file-input-wrapper">
+                        <label for="import-github" class="btn-secondary">Importar JSON de GitHub</label>
+                        <input type="file" id="import-github" accept=".json" style="display: none;">
+                    </div>
+                </div>
+                <div class="github-info">
+                    <p>Para actualizar tus datos en GitHub:</p>
+                    <ol>
+                        <li>Haz clic en "Generar JSON para GitHub"</li>
+                        <li>Sube el archivo descargado a tu repositorio</li>
+                        <li>Para sincronizar desde GitHub, descarga el archivo y usa "Importar JSON de GitHub"</li>
+                    </ol>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Sistema de Registro de Horas de Voluntariado</p>
+        </footer>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
