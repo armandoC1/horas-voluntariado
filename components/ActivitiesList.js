@@ -136,7 +136,8 @@ function ActivitiesList({ activities, onActivityDeleted, showToast }) {
     filterCycle === "all"
       ? activities
       : activities.filter(
-          (activity) => activity.cycle === Number.parseInt(filterCycle)
+          (activity) => String(activity.cycle) === String(filterCycle)
+          // (activity) => activity.cycle === Number.parseInt(filterCycle)
         );
 
   const sortedActivities = [...filteredActivities].sort(
