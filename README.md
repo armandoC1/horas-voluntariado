@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+🕊️ Registro de Voluntariado — Dirección de Integración
 
-## Getting Started
+Registro de Voluntariado es una aplicación web desarrollada con Next.js (Frontend + Backend) que permite registrar, visualizar y gestionar las horas de voluntariado realizadas por los estudiantes o miembros de la Dirección de Integración.
 
-First, run the development server:
+El sistema ofrece autenticación de usuarios, registro de actividades, estadísticas por ciclos y exportación de datos a CSV/Excel, todo dentro de una interfaz moderna y responsiva.
 
-```bash
+🚀 Características Principales
+
+✅ Autenticación segura: registro e inicio de sesión con validación.
+✅ Gestión de actividades: registro de nombre, fecha, hora, lugar y ciclo.
+✅ Cálculo automático de horas: el sistema calcula horas basadas en entrada y salida.
+✅ Visualización de progreso: gráficas interactivas por ciclo y tendencia mensual.
+✅ Estadísticas en tiempo real: total de horas, promedio por actividad, y ciclos acumulados.
+✅ Exportación de datos: descarga de actividades en formato CSV o Excel.
+✅ Diseño adaptable: interfaz moderna optimizada para escritorio y móvil.
+
+🧩 Tecnologías Utilizadas
+
+Next.js 14+ — Framework React Full Stack
+
+TypeScript — Tipado y mantenibilidad
+
+Tailwind CSS — Diseño rápido y moderno
+
+
+PostgreSQL  — Base de datos
+
+Recharts — Gráficas de progreso
+
+NextAuth.js — Autenticación de usuarios
+
+
+📸 Vistas del Sistema
+Pantalla	Descripción
+🟣 Inicio de sesión / Registro	Permite crear cuenta o acceder con credenciales existentes.
+🟣 Dashboard	Muestra resumen de horas, ciclos y promedios.
+🟣 Registro de actividad	Formulario para agregar nuevas actividades con hora, lugar y ciclo.
+🟣 Gráficas	Visualiza el progreso de horas completadas y tendencias mensuales.
+🟣 Listado de actividades	Tabla editable con opción de eliminar y exportar datos.
+⚙️ Instalación y Uso Local
+# 1️⃣ Clonar el repositorio
+git clone https://github.com/tuusuario/registro-voluntariado.git
+cd registro-voluntariado
+
+# 2️⃣ Instalar dependencias
+npm install
+
+# 3️⃣ Configurar variables de entorno
+cp .env.example .env.local
+# Edita la conexión de base de datos y credenciales
+
+# 4️⃣ Ejecutar el entorno de desarrollo
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# 5️⃣ Abrir en el navegador
+http://localhost:3000
