@@ -32,36 +32,21 @@ export default function RootLayout({ children }) {
   return (
     <html lang="es">
       <head>
+        {/* ✅ AdSense: debe estar SSR como <script> clásico */}
         <script
-          async
-          src="https://www.googletagmanager.com/gtag/js?id=G-9QRMBKM6CR"
-        ></script>
-        <script>
-          window.dataLayer = window.dataLayer || []; function gtag()
-          {dataLayer.push(arguments)}
-          gtag('js', new Date()); gtag('config', 'G-9QRMBKM6CR');
-        </script>
-        {/* === Google AdSense === */}
-        <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2150979526953359"
           crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2150979526953359"
-          crossorigin="anonymous"
         ></script>
 
-        {/* === Google Analytics (GA4) === */}
+        {/* ✅ GA4 con next/script (una sola vez) */}
         <Script
           async
           src="https://www.googletagmanager.com/gtag/js?id=G-9QRMBKM6CR"
           strategy="afterInteractive"
         />
         <Script
-          id="google-analytics"
+          id="ga4-init"
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
