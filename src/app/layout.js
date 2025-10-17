@@ -1,39 +1,69 @@
 import "./globals.css"
 
 export const metadata = {
-  title: "Registro de Voluntariado CDev | Sistema para registrar horas de servicio social",
+  title:
+    "Registro de Horas de Voluntariado | Dirección de Integración de El Salvador - CDev",
   description:
-    "Plataforma desarrollada por CDev para registrar, gestionar y consultar horas de voluntariado de manera rápida y eficiente.",
+    "Sistema digital creado por CDev para el registro y control de horas de voluntariado realizadas por los becarios del programa Dirección de Integración de El Salvador.",
   keywords: [
     "registro de voluntariado",
-    "horas de servicio social",
-    "Dirección de Integración",
-    "plataforma de voluntariado",
-    "control de horas",
-    "registro de actividades"
+    "horas de voluntariado",
+    "programa de becas El Salvador",
+    "dirección de integración",
+    "CDev",
+    "control de horas de servicio social",
+    "plataforma de voluntariado El Salvador"
   ],
   authors: [{ name: "CDev", url: "https://carloshernandez.site" }],
   openGraph: {
-    title: "Registro de Voluntariado CDev",
+    title:
+      "Registro de Horas de Voluntariado | Dirección de Integración de El Salvador - CDev",
     description:
-      "Sistema moderno para registrar y administrar horas de voluntariado desarrollado por CDev.",
-    url: "https://carloshernandez.site/", 
+      "Plataforma oficial para registrar y controlar las horas de voluntariado de becarios en la Dirección de Integración, desarrollada por CDev.",
+    url: "https://horasvoluntariado.site", 
     siteName: "Registro de Voluntariado CDev",
     locale: "es_ES",
     type: "website",
+    
   },
-  twitter: {
-    card: "summary_large_image",
-    title: "Registro de Voluntariado CDev",
-    description:
-      "Gestiona y registra tus horas de servicio social con la plataforma de CDev.",
-  },
+  
 }
+
 
 export default function RootLayout({ children }) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <head />
+      <body>
+        {/* === Google AdSense === */}
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2150979526953359"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+
+        {/* === Google Analytics (GA4) === */}
+        <Script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-9QRMBKM6CR"
+          strategy="afterInteractive"
+        />
+        <Script
+          id="google-analytics"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-9QRMBKM6CR');
+            `,
+          }}
+        />
+
+        {children}
+      </body>
     </html>
   )
 }
