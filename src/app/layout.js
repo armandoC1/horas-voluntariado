@@ -1,6 +1,5 @@
-import "./globals.css"
-import Script from 'next/script';
-
+import "./globals.css";
+import Script from "next/script";
 
 export const metadata = {
   title:
@@ -14,7 +13,7 @@ export const metadata = {
     "dirección de integración",
     "CDev",
     "control de horas de servicio social",
-    "plataforma de voluntariado El Salvador"
+    "plataforma de voluntariado El Salvador",
   ],
   authors: [{ name: "CDev", url: "https://carloshernandez.site" }],
   openGraph: {
@@ -22,20 +21,26 @@ export const metadata = {
       "Registro de Horas de Voluntariado | Dirección de Integración de El Salvador - CDev",
     description:
       "Plataforma oficial para registrar y controlar las horas de voluntariado de becarios en la Dirección de Integración, desarrollada por CDev.",
-    url: "https://horasvoluntariado.site", 
+    url: "https://horasvoluntariado.site",
     siteName: "Registro de Voluntariado CDev",
     locale: "es_ES",
     type: "website",
-    
   },
-  
-}
-
+};
 
 export default function RootLayout({ children }) {
   return (
     <html lang="es">
-      <head> 
+      <head>
+        <script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-9QRMBKM6CR"
+        ></script>
+        <script>
+          window.dataLayer = window.dataLayer || []; function gtag()
+          {dataLayer.push(arguments)}
+          gtag('js', new Date()); gtag('config', 'G-9QRMBKM6CR');
+        </script>
         {/* === Google AdSense === */}
         <Script
           async
@@ -43,6 +48,11 @@ export default function RootLayout({ children }) {
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2150979526953359"
+          crossorigin="anonymous"
+        ></script>
 
         {/* === Google Analytics (GA4) === */}
         <Script
@@ -63,9 +73,7 @@ export default function RootLayout({ children }) {
           }}
         />
       </head>
-      <body>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
-  )
+  );
 }
