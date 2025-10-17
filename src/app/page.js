@@ -144,6 +144,7 @@ export default function Home() {
 
           <footer>
             <p>Sistema de Registro de Horas de Voluntariado</p>
+            <p>&copy; 2025 CDev. Todos los derechos reservados. - <a href="https://carloshernandez.site/">Desarrollador</a></p>
           </footer>
         </div>
       )}
