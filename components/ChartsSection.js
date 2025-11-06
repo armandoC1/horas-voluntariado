@@ -26,7 +26,6 @@ function ChartsSection({ activities }) {
     loadChartJS()
 
     return () => {
-      // Limpiar gráficos al desmontar
       if (progressChartInstance.current) {
         progressChartInstance.current.destroy()
       }
@@ -39,7 +38,6 @@ function ChartsSection({ activities }) {
   const createCharts = () => {
     if (!window.Chart || !activities.length) return
 
-    // Destruir gráficos existentes
     if (progressChartInstance.current) {
       progressChartInstance.current.destroy()
     }

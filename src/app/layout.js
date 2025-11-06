@@ -15,10 +15,10 @@ export const metadata = {
     "control de horas de servicio social",
     "plataforma de voluntariado El Salvador",
   ],
-  authors: [{ name: "CDev", url: "https://carloshernandez.site" }],
+  authors: [{ name: "CRivera", url: "https://armandodev.site" }],
   openGraph: {
     title:
-      "Registro de Horas de Voluntariado | Dirección de Integración de El Salvador - CDev",
+      "Registro de Horas de Voluntariado | Dirección de Integración de El Salvador - CRivera",
     description:
       "Plataforma oficial para registrar y controlar las horas de voluntariado de becarios en la Dirección de Integración, desarrollada por CDev.",
     url: "https://horasvoluntariado.site",
