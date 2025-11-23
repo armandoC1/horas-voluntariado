@@ -144,7 +144,7 @@ export default function Home() {
 
           <footer>
             <p>Sistema de Registro de Horas de Voluntariado</p>
-            <p>&copy; 2025 CRivera. Todos los derechos reservados. - <a href="armandodev.site/">Desarrollador</a></p>
+            <p>&copy; 2025 CRivera. Todos los derechos reservados. - <a href="https://armandodev.site/">Desarrollador</a></p>
           </footer>
         </div>
       )}
