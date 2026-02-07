@@ -32,14 +32,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="es">
       <head>
-        {/* ✅ AdSense: debe estar SSR como <script> clásico */}
         <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2150979526953359"
           crossOrigin="anonymous"
         ></script>
-
-        {/* ✅ GA4 con next/script (una sola vez) */}
         <Script
           async
           src="https://www.googletagmanager.com/gtag/js?id=G-9QRMBKM6CR"

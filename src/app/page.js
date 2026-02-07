@@ -153,7 +153,7 @@ export default function Home() {
           <footer>
             <p>Sistema de Registro de Horas de Voluntariado</p>
             <p>
-              &copy; 2025 CRivera. Todos los derechos reservados. -{" "}
+              &copy; 2026 CRivera. Todos los derechos reservados. -{" "}
               <a href="https://armandodev.site/">Desarrollador</a>
             </p>
           </footer>

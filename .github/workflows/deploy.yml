@@ -1,0 +1,56 @@
+name: Deploy Horas Voluntariado
+
+on:
+  push:
+    branches:
+      - main
+      - qa
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Configurar Entorno y Rutas
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "DEST_PATH=$HOME/apps/horas-voluntariado-app/horas-voluntariado-prod" >> $GITHUB_ENV
+            echo "PM2_NAME=horas-voluntariado-prod" >> $GITHUB_ENV
+            echo "ENV_CONTENT=${{ secrets.DOTENV_PROD }}" >> $GITHUB_ENV
+          else
+            echo "DEST_PATH=$HOME/apps/horas-voluntariado-app/horas-voluntariado-dev" >> $GITHUB_ENV
+            echo "PM2_NAME=horas-voluntariado-dev" >> $GITHUB_ENV
+            echo "ENV_CONTENT=${{ secrets.DOTENV_QA }}" >> $GITHUB_ENV
+          fi
+
+      - name: Instalar dependencias y Build
+        run: |
+          npm ci
+          # Creamos el archivo .env a partir del secreto de GitHub
+          echo "${{ env.ENV_CONTENT }}" > .env
+          npm run build
+
+      - name: Sincronizar archivos al servidor
+        run: |
+          # rsync sincroniza el build limpio a la carpeta destino
+          rsync -avz --delete \
+            --exclude '.git' \
+            --exclude 'node_modules' \
+            ./ ${{ env.DEST_PATH }}/
+
+      - name: Reiniciar y Persistir PM2
+        run: |
+          cd ${{ env.DEST_PATH }}
+          # Instalamos solo dependencias de producción en la carpeta final
+          npm install --production
+          # Reinicia el proceso; si no existe, lo crea
+          pm2 restart ${{ env.PM2_NAME }} || pm2 start npm --name "${{ env.PM2_NAME }}" -- start
+          # Guarda la lista de procesos para que inicien tras un reboot del server
+          pm2 save
