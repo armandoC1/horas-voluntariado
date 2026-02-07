@@ -33,24 +33,22 @@ jobs:
       - name: Instalar dependencias y Build
         run: |
           npm ci
-          # Creamos el archivo .env a partir del secreto de GitHub
           echo "${{ env.ENV_CONTENT }}" > .env
           npm run build
 
       - name: Sincronizar archivos al servidor
         run: |
-          # rsync sincroniza el build limpio a la carpeta destino
+          # Importante: Usar "." asegura que copiamos el contenido del runner 
+          # a la raíz de DEST_PATH sin crear carpetas extra.
           rsync -avz --delete \
             --exclude '.git' \
             --exclude 'node_modules' \
-            ./ ${{ env.DEST_PATH }}/
+            . ${{ env.DEST_PATH }}/
 
       - name: Reiniciar y Persistir PM2
         run: |
           cd ${{ env.DEST_PATH }}
-          # Instalamos solo dependencias de producción en la carpeta final
           npm install --production
-          # Reinicia el proceso; si no existe, lo crea
-          pm2 restart ${{ env.PM2_NAME }} || pm2 start npm --name "${{ env.PM2_NAME }}" -- start
-          # Guarda la lista de procesos para que inicien tras un reboot del server
+          # Usamos --cwd para forzar a PM2 a reconocer la carpeta correcta como raíz del proyecto
+          pm2 restart ${{ env.PM2_NAME }} || pm2 start npm --name "${{ env.PM2_NAME }}" --cwd "${{ env.DEST_PATH }}" -- start
           pm2 save
