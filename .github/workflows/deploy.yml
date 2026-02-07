@@ -63,7 +63,7 @@ jobs:
         if: always()
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_CHANNEL: 'alertas-deploy' # Cambia esto por tu canal
+          SLACK_CHANNEL: 'horas-voluntariado'
           SLACK_COLOR: ${{ job.status == 'success' && 'good' || 'danger' }}
           SLACK_TITLE: '🚀 Deploy: ${{ env.PM2_NAME }}'
           SLACK_MESSAGE: |
