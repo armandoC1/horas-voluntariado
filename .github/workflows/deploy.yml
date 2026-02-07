@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - qa
-    workflow_dispatch:
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -24,23 +24,28 @@ jobs:
           if [ "${{ github.ref }}" == "refs/heads/main" ]; then
             echo "DEST_PATH=$HOME/apps/horas-voluntariado-app/horas-voluntariado-prod" >> $GITHUB_ENV
             echo "PM2_NAME=horas-voluntariado-prod" >> $GITHUB_ENV
-            echo "ENV_CONTENT=${{ secrets.DOTENV_PROD }}" >> $GITHUB_ENV
+            echo "ENV_CONTENT<<EOF" >> $GITHUB_ENV
+            echo "${{ secrets.DOTENV_PROD }}" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
           else
             echo "DEST_PATH=$HOME/apps/horas-voluntariado-app/horas-voluntariado-dev" >> $GITHUB_ENV
             echo "PM2_NAME=horas-voluntariado-dev" >> $GITHUB_ENV
-            echo "ENV_CONTENT=${{ secrets.DOTENV_QA }}" >> $GITHUB_ENV
+            echo "ENV_CONTENT<<EOF" >> $GITHUB_ENV
+            echo "${{ secrets.DOTENV_QA }}" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
           fi
 
       - name: Instalar dependencias y Build
         run: |
           npm ci
-          echo "${{ env.ENV_CONTENT }}" > .env
+          # El uso de EOF aquí asegura que el .env se escriba con todas sus líneas
+          cat <<EOF > .env
+          ${{ env.ENV_CONTENT }}
+          EOF
           npm run build
 
       - name: Sincronizar archivos al servidor
         run: |
-          # Importante: Usar "." asegura que copiamos el contenido del runner 
-          # a la raíz de DEST_PATH sin crear carpetas extra.
           rsync -avz --delete \
             --exclude '.git' \
             --exclude 'node_modules' \
@@ -50,6 +55,21 @@ jobs:
         run: |
           cd ${{ env.DEST_PATH }}
           npm install --production
-          # Usamos --cwd para forzar a PM2 a reconocer la carpeta correcta como raíz del proyecto
           pm2 restart ${{ env.PM2_NAME }} || pm2 start npm --name "${{ env.PM2_NAME }}" --cwd "${{ env.DEST_PATH }}" -- start
           pm2 save
+
+      - name: Notificar a Slack
+        uses: rtCamp/action-slack-notify@v2
+        if: always()
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_CHANNEL: 'alertas-deploy' # Cambia esto por tu canal
+          SLACK_COLOR: ${{ job.status == 'success' && 'good' || 'danger' }}
+          SLACK_TITLE: '🚀 Deploy: ${{ env.PM2_NAME }}'
+          SLACK_MESSAGE: |
+            *Estado:* ${{ job.status == 'success' && '✅ Completado con éxito' || '❌ Falló el despliegue' }}
+            *Rama:* `${{ github.ref_name }}`
+            *Ruta en Server:* `${{ env.DEST_PATH }}`
+            *Mensaje del Commit:* ${{ github.event.head_commit.message }}
+            *Autor:* ${{ github.actor }}
+          SLACK_FOOTER: 'Sistema de CI/CD - Carlos Hernández'
