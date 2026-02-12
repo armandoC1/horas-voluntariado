@@ -14,12 +14,12 @@ function ActivitiesList({ activities, onActivityDeleted, showToast }) {
   const getAllCycles = () => {
     if (activities.length === 0) return [];
     return [...new Set(activities.map((activity) => activity.cycle))].sort(
-      (a, b) => a - b
+      (a, b) => a - b,
     );
   };
 
   const formatTime12Hour = (timeString) => {
-    if (!timeString) return "";
+    if (!timeString) return "--:--";
 
     const [hours, minutes] = timeString.split(":");
     let hour = Number.parseInt(hours);
@@ -49,7 +49,7 @@ function ActivitiesList({ activities, onActivityDeleted, showToast }) {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       const data = await response.json();
@@ -76,7 +76,7 @@ function ActivitiesList({ activities, onActivityDeleted, showToast }) {
     let dataToExport = activities;
     if (filterCycle !== "all") {
       dataToExport = activities.filter(
-        (activity) => activity.cycle === Number.parseInt(filterCycle)
+        (activity) => activity.cycle === Number.parseInt(filterCycle),
       );
     }
 
@@ -87,7 +87,7 @@ function ActivitiesList({ activities, onActivityDeleted, showToast }) {
 
     let csvContent = "data:text/csv;charset=utf-8,";
     csvContent +=
-      "Fecha,Actividad,Lugar,Hora Entrada,Hora Salida,Horas,Ciclo\n";
+      "Fecha,Actividad,Tipo,Lugar,Hora Entrada,Hora Salida,Horas,Ciclo\n";
 
     dataToExport.forEach((activity) => {
       const date = new Date(activity.date);
@@ -98,15 +98,19 @@ function ActivitiesList({ activities, onActivityDeleted, showToast }) {
       const row = [
         formattedDate,
         activity.name,
+        activity.activity_type || "General",
         activity.location,
         formattedStartTime,
         formattedEndTime,
-        Number.parseFloat(activity.hours).toFixed(1),
+        activity.hours ? Number.parseFloat(activity.hours).toFixed(1) : "0.0",
         activity.cycle,
       ];
 
       const escapedRow = row.map((field) => {
-        if (typeof field === "string" && field.includes(",")) {
+        if (
+          typeof field === "string" &&
+          (field.includes(",") || field.includes("\n"))
+        ) {
           return `"${field}"`;
         }
         return field;
@@ -136,12 +140,11 @@ function ActivitiesList({ activities, onActivityDeleted, showToast }) {
     filterCycle === "all"
       ? activities
       : activities.filter(
-          (activity) => String(activity.cycle) === String(filterCycle)
-          // (activity) => activity.cycle === Number.parseInt(filterCycle)
+          (activity) => String(activity.cycle) === String(filterCycle),
         );
 
   const sortedActivities = [...filteredActivities].sort(
-    (a, b) => new Date(b.date) - new Date(a.date)
+    (a, b) => new Date(b.date) - new Date(a.date),
   );
 
   return (
@@ -178,7 +181,7 @@ function ActivitiesList({ activities, onActivityDeleted, showToast }) {
                 <th>Lugar</th>
                 <th>Entrada</th>
                 <th>Salida</th>
-                <th>Horas</th>
+                <th>Horas / Tipo</th>
                 <th>Ciclo</th>
                 <th>Acciones</th>
               </tr>
@@ -188,20 +191,35 @@ function ActivitiesList({ activities, onActivityDeleted, showToast }) {
                 const date = new Date(activity.date);
                 const formattedDate = date.toLocaleDateString("es-ES");
                 const formattedStartTime = formatTime12Hour(
-                  activity.start_time
+                  activity.start_time,
                 );
                 const formattedEndTime = formatTime12Hour(activity.end_time);
 
+                const isNewSchema =
+                  activity.activity_type !== null &&
+                  activity.activity_type !== undefined;
+
                 return (
-                  <tr key={activity.id}>
+                  <tr
+                    key={activity.id}
+                    style={{ animation: "fadeIn 0.3s ease" }}
+                  >
                     <td>{formattedDate}</td>
                     <td>{activity.name}</td>
                     <td>{activity.location}</td>
                     <td>{formattedStartTime}</td>
                     <td>{formattedEndTime}</td>
                     <td>
-                      {Number.parseFloat(activity.hours).toFixed(1)}
-                      {activity.manual_hours && " *"}
+                      {isNewSchema ? (
+                        <span className="type-badge">
+                          {activity.activity_type}
+                        </span>
+                      ) : (
+                        <>
+                          {Number.parseFloat(activity.hours || 0).toFixed(1)}
+                          {activity.manual_hours && " *"}
+                        </>
+                      )}
                     </td>
                     <td>{activity.cycle}</td>
                     <td>
@@ -241,6 +259,27 @@ function ActivitiesList({ activities, onActivityDeleted, showToast }) {
         cancelText="Cancelar"
         type="danger"
       />
+
+      <style jsx>{`
+        .type-badge {
+          background-color: #eff6ff;
+          color: #1d4ed8;
+          padding: 2px 8px;
+          border-radius: 4px;
+          font-size: 0.85em;
+          font-weight: bold;
+          border: 1px solid #dbeafe;
+          text-transform: uppercase;
+        }
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+      `}</style>
     </>
   );
 }

@@ -1,5 +1,6 @@
 import "./globals.css";
 import Script from "next/script";
+import manifest from "./manifest";
 
 export const metadata = {
   title:

@@ -1,70 +1,71 @@
-"use client"
+"use client";
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef } from "react";
 
 function ChartsSection({ activities }) {
-  const progressChartRef = useRef(null)
-  const monthlyChartRef = useRef(null)
-  const progressChartInstance = useRef(null)
-  const monthlyChartInstance = useRef(null)
+  const progressChartRef = useRef(null);
+  const monthlyChartRef = useRef(null);
+  const progressChartInstance = useRef(null);
+  const monthlyChartInstance = useRef(null);
 
   useEffect(() => {
-    // Cargar Chart.js dinámicamente
     const loadChartJS = async () => {
       if (typeof window !== "undefined" && !window.Chart) {
-        const script = document.createElement("script")
-        script.src = "https://cdn.jsdelivr.net/npm/chart.js"
+        const script = document.createElement("script");
+        script.src = "https://cdn.jsdelivr.net/npm/chart.js";
         script.onload = () => {
-          createCharts()
-        }
-        document.head.appendChild(script)
+          createCharts();
+        };
+        document.head.appendChild(script);
       } else if (window.Chart) {
-        createCharts()
+        createCharts();
       }
-    }
+    };
 
-    loadChartJS()
+    loadChartJS();
 
     return () => {
       if (progressChartInstance.current) {
-        progressChartInstance.current.destroy()
+        progressChartInstance.current.destroy();
       }
       if (monthlyChartInstance.current) {
-        monthlyChartInstance.current.destroy()
+        monthlyChartInstance.current.destroy();
       }
-    }
-  }, [activities])
+    };
+  }, [activities]);
 
   const createCharts = () => {
-    if (!window.Chart || !activities.length) return
+    if (!window.Chart || !activities.length) return;
 
     if (progressChartInstance.current) {
-      progressChartInstance.current.destroy()
+      progressChartInstance.current.destroy();
     }
     if (monthlyChartInstance.current) {
-      monthlyChartInstance.current.destroy()
+      monthlyChartInstance.current.destroy();
     }
 
-    createProgressChart()
-    createMonthlyChart()
-  }
+    createProgressChart();
+    createMonthlyChart();
+  };
 
   const createProgressChart = () => {
-    const ctx = progressChartRef.current?.getContext("2d")
-    if (!ctx) return
+    const ctx = progressChartRef.current?.getContext("2d");
+    if (!ctx) return;
 
-    // Datos por ciclo
-    const cycleData = {}
+    const cycleData = {};
     activities.forEach((activity) => {
       if (!cycleData[activity.cycle]) {
-        cycleData[activity.cycle] = 0
+        cycleData[activity.cycle] = 0;
       }
-      cycleData[activity.cycle] += Number.parseFloat(activity.hours)
-    })
+      const h = Number.parseFloat(activity.hours);
+      cycleData[activity.cycle] += isNaN(h) ? 0 : h;
+    });
 
-    const cycles = Object.keys(cycleData).sort((a, b) => Number.parseInt(a) - Number.parseInt(b))
-    const hours = cycles.map((cycle) => cycleData[cycle])
-    const goals = cycles.map(() => 60) // Meta de 60 horas por ciclo
+    const cycles = Object.keys(cycleData).sort(
+      (a, b) => Number.parseInt(a) - Number.parseInt(b),
+    );
+    const hours = cycles.map((cycle) => cycleData[cycle]);
+    const goals = cycles.map(() => 60);
 
     progressChartInstance.current = new window.Chart(ctx, {
       type: "bar",
@@ -136,33 +137,35 @@ function ChartsSection({ activities }) {
           },
         },
       },
-    })
-  }
+    });
+  };
 
   const createMonthlyChart = () => {
-    const ctx = monthlyChartRef.current?.getContext("2d")
-    if (!ctx) return
+    const ctx = monthlyChartRef.current?.getContext("2d");
+    if (!ctx) return;
 
-    // Datos por mes
-    const monthlyData = {}
+    const monthlyData = {};
     activities.forEach((activity) => {
-      const date = new Date(activity.date)
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`
+      const date = new Date(activity.date);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
       if (!monthlyData[monthKey]) {
-        monthlyData[monthKey] = 0
+        monthlyData[monthKey] = 0;
       }
-      monthlyData[monthKey] += Number.parseFloat(activity.hours)
-    })
+      const h = Number.parseFloat(activity.hours);
+      monthlyData[monthKey] += isNaN(h) ? 0 : h;
+    });
 
-    const months = Object.keys(monthlyData).sort()
-    const monthlyHours = months.map((month) => monthlyData[month])
+    const months = Object.keys(monthlyData).sort();
+    const monthlyHours = months.map((month) => monthlyData[month]);
 
-    // Formatear etiquetas de meses
     const monthLabels = months.map((month) => {
-      const [year, monthNum] = month.split("-")
-      const date = new Date(year, monthNum - 1)
-      return date.toLocaleDateString("es-ES", { month: "short", year: "numeric" })
-    })
+      const [year, monthNum] = month.split("-");
+      const date = new Date(year, monthNum - 1);
+      return date.toLocaleDateString("es-ES", {
+        month: "short",
+        year: "numeric",
+      });
+    });
 
     monthlyChartInstance.current = new window.Chart(ctx, {
       type: "line",
@@ -235,13 +238,17 @@ function ChartsSection({ activities }) {
           mode: "index",
         },
       },
-    })
-  }
+    });
+  };
 
-  // Calcular estadísticas adicionales
-  const totalHours = activities.reduce((sum, activity) => sum + Number.parseFloat(activity.hours), 0)
-  const totalActivities = activities.length
-  const averageHoursPerActivity = totalActivities > 0 ? totalHours / totalActivities : 0
+  const totalHours = activities.reduce((sum, activity) => {
+    const h = Number.parseFloat(activity.hours);
+    return sum + (isNaN(h) ? 0 : h);
+  }, 0);
+
+  const totalActivities = activities.length;
+  const averageHoursPerActivity =
+    totalActivities > 0 ? totalHours / totalActivities : 0;
 
   if (!activities.length) {
     return (
@@ -250,7 +257,10 @@ function ChartsSection({ activities }) {
           <div className="no-data">
             <div className="no-data-icon">📊</div>
             <h3>Estadísticas</h3>
-            <p>Registra algunas actividades para ver tus gráficos de progreso y estadísticas detalladas</p>
+            <p>
+              Registra algunas actividades para ver tus gráficos de progreso y
+              estadísticas detalladas
+            </p>
           </div>
         </div>
 
@@ -289,7 +299,7 @@ function ChartsSection({ activities }) {
           }
         `}</style>
       </section>
-    )
+    );
   }
 
   return (
@@ -305,7 +315,9 @@ function ChartsSection({ activities }) {
             <div className="stat-label">Actividades</div>
           </div>
           <div className="stat-item">
-            <div className="stat-number">{averageHoursPerActivity.toFixed(1)}</div>
+            <div className="stat-number">
+              {averageHoursPerActivity.toFixed(1)}
+            </div>
             <div className="stat-label">Promedio por Actividad</div>
           </div>
         </div>
@@ -412,7 +424,7 @@ function ChartsSection({ activities }) {
         }
       `}</style>
     </section>
-  )
+  );
 }
 
-export default ChartsSection
+export default ChartsSection;
