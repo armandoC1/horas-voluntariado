@@ -1,18 +1,9 @@
-import { getUserFromToken } from "../../../../../lib/auth";
 import { query } from "../../../../../lib/db";
+import { requireAuth } from "../../../../../lib/api-auth";
 
 export async function PUT(request, { params }) {
-  const token = request.headers.get("authorization")?.replace("Bearer ", "");
-  const user = await getUserFromToken(token);
-
-  if (!user) {
-    return new Response(JSON.stringify({ message: "No autorizado" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
   try {
+    const user = await requireAuth(request);
     const { id } = await params;
     const {
       name,
@@ -81,17 +72,8 @@ export async function PUT(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
-  const token = request.headers.get("authorization")?.replace("Bearer ", "");
-  const user = await getUserFromToken(token);
-
-  if (!user) {
-    return new Response(JSON.stringify({ message: "No autorizado" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
   try {
+    const user = await requireAuth(request);
     const { id } = await params;
 
     const result = await query(

@@ -2,9 +2,9 @@ import { verifyPassword } from "../../../../../lib/auth";
 import { query } from "../../../../../lib/db";
 import { generateAndSendOtp } from "../../../../../lib/otp";
 import { checkRateLimit, loginLimiter } from "../../../../../lib/rate-limit";
+import { loginSchema, validate } from "../../../../../lib/schemas";
 
 export async function POST(request) {
-
   const ip = request.headers.get('x-forwarded-for') || 'unknown';
   const rateLimit = await checkRateLimit(loginLimiter, ip);
   
@@ -21,12 +21,12 @@ export async function POST(request) {
   }
 
   try {
-    let { email, password } = await request.json();
-    email = email.trim();
-
-    if (!email || !password) {
+    const body = await request.json();
+    const validation = validate(body, loginSchema);
+    
+    if (!validation.success) {
       return new Response(
-        JSON.stringify({ message: "Email y contraseña son obligatorios" }),
+        JSON.stringify({ message: validation.message }),
         {
           status: 400,
           headers: { "Content-Type": "application/json" },
@@ -34,9 +34,12 @@ export async function POST(request) {
       );
     }
 
+    const { email, password } = validation.data;
+    const cleanEmail = email.trim().toLowerCase();
+
     const users = await query(
       "SELECT id, name, email, password FROM users WHERE email = $1",
-      [email]
+      [cleanEmail]
     );
 
     const user = users[0];

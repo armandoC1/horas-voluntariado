@@ -1,7 +1,8 @@
-import { hashPassword, generateToken } from "../../../../../lib/auth";
+import { hashPassword } from "../../../../../lib/auth";
 import { query } from "../../../../../lib/db";
 import { generateAndSendOtp } from "../../../../../lib/otp";
 import { checkRateLimit, registerLimiter } from "../../../../../lib/rate-limit";
+import { registerSchema, validate } from "../../../../../lib/schemas";
 
 export async function POST(request) {
   const ip = request.headers.get('x-forwarded-for') || 'unknown';
@@ -20,12 +21,12 @@ export async function POST(request) {
   }
 
   try {
-    const { name, email, password } = await request.json();
-
-    // validaciones
-    if (!name || !email || !password) {
+    const body = await request.json();
+    const validation = validate(body, registerSchema);
+    
+    if (!validation.success) {
       return new Response(
-        JSON.stringify({ message: "Todos los campos son obligatorios" }),
+        JSON.stringify({ message: validation.message }),
         {
           status: 400,
           headers: { "Content-Type": "application/json" },
@@ -33,28 +34,11 @@ export async function POST(request) {
       );
     }
 
-    if (password.length < 6) {
-      return new Response(
-        JSON.stringify({
-          message: "La contraseña debe tener al menos 6 caracteres",
-        }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return new Response(JSON.stringify({ message: "Email inválido" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const { name, email, password } = validation.data;
+    const cleanEmail = email.trim().toLowerCase();
 
     const existingUsers = await query("SELECT id FROM users WHERE email = $1", [
-      email,
+      cleanEmail,
     ]);
 
     if (existingUsers.length > 0) {
@@ -71,10 +55,10 @@ export async function POST(request) {
 
     await query(
       "INSERT INTO users (name, email, password, is_verified) VALUES ($1, $2, $3, FALSE)",
-      [name, email, hashedPassword]
+      [name, cleanEmail, hashedPassword]
     );
 
-    const emailSent = await generateAndSendOtp(email);
+    const emailSent = await generateAndSendOtp(cleanEmail);
 
     if (!emailSent) {
       return new Response(
@@ -90,7 +74,7 @@ export async function POST(request) {
         success: true,
         message: "Usuario registrado. Por favor, verifica tu email",
         requireOtp: true,
-        email: email,
+        email: cleanEmail,
       }),
       {
         status: 201,

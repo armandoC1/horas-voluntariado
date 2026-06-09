@@ -2,6 +2,7 @@ import { query } from "../../../../../lib/db";
 import { hashPassword } from "../../../../../lib/auth";
 import { generateAndSendOtp, verifyOTPCode } from "../../../../../lib/otp";
 import { checkRateLimit, resetPasswordLimiter } from "../../../../../lib/rate-limit";
+import { resetPasswordRequestSchema, resetPasswordUpdateSchema, validate } from "../../../../../lib/schemas";
 
 export async function POST(request) {
   const ip = request.headers.get('x-forwarded-for') || 'unknown';
@@ -20,18 +21,22 @@ export async function POST(request) {
   }
 
   try {
-    const { email } = await request.json();
-
-    if (!email) {
-      return new Response(JSON.stringify({ message: "Email requerido" }), { status: 400 });
+    const body = await request.json();
+    const validation = validate(body, resetPasswordRequestSchema);
+    
+    if (!validation.success) {
+      return new Response(JSON.stringify({ message: validation.message }), { status: 400 });
     }
 
-    const users = await query("SELECT id FROM users WHERE email = $1", [email]);
+    const { email } = validation.data;
+    const cleanEmail = email.trim().toLowerCase();
+
+    const users = await query("SELECT id FROM users WHERE email = $1", [cleanEmail]);
     
     if (users.length === 0) {
       return new Response(JSON.stringify({ message: "Este correo no está registrado" }), { status: 404 });
     }
-    const emailSent = await generateAndSendOtp(email);
+    const emailSent = await generateAndSendOtp(cleanEmail);
 
     if (!emailSent) {
       return new Response(JSON.stringify({ message: "Error al enviar correo" }), { status: 500 });
@@ -47,17 +52,17 @@ export async function POST(request) {
 
 export async function PUT(request) {
   try {
-    const { email, code, newPassword } = await request.json();
-
-    if (!email || !code || !newPassword) {
-      return new Response(JSON.stringify({ message: "Faltan datos" }), { status: 400 });
+    const body = await request.json();
+    const validation = validate(body, resetPasswordUpdateSchema);
+    
+    if (!validation.success) {
+      return new Response(JSON.stringify({ message: validation.message }), { status: 400 });
     }
 
-    if (newPassword.length < 6) {
-      return new Response(JSON.stringify({ message: "La contraseña debe tener al menos 6 caracteres" }), { status: 400 });
-    }
+    const { email, code, newPassword } = validation.data;
+    const cleanEmail = email.trim().toLowerCase();
 
-    const verification = await verifyOTPCode(email, code);
+    const verification = await verifyOTPCode(cleanEmail, code);
 
     if (!verification.valid) {
       return new Response(JSON.stringify({ message: verification.message || "Código inválido o expirado" }), { status: 400 });
@@ -65,7 +70,7 @@ export async function PUT(request) {
 
     const hashedPassword = await hashPassword(newPassword);
 
-    await query("UPDATE users SET password = $1 WHERE email = $2", [hashedPassword, email]);
+    await query("UPDATE users SET password = $1 WHERE email = $2", [hashedPassword, cleanEmail]);
 
     return new Response(JSON.stringify({ success: true, message: "Contraseña actualizada correctamente" }), { status: 200 });
 

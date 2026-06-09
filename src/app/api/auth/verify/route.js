@@ -1,22 +1,27 @@
 import { generateToken } from "../../../../../lib/auth";
 import { query } from "../../../../../lib/db";
 import { verifyOTPCode } from "../../../../../lib/otp";
+import { verifyOtpSchema, validate } from "../../../../../lib/schemas";
 
 export async function POST(request) {
   try {
-    const { email, code } = await request.json()
-
-    if (!email || !code) {
-        return new Response(JSON.stringify({ message: "Faltan datos" }), { status: 400 })
+    const body = await request.json();
+    const validation = validate(body, verifyOtpSchema);
+    
+    if (!validation.success) {
+      return new Response(JSON.stringify({ message: validation.message }), { status: 400 });
     }
 
-    const verification = await verifyOTPCode(email, code);
+    const { email, code } = validation.data;
+    const cleanEmail = email.trim().toLowerCase();
+
+    const verification = await verifyOTPCode(cleanEmail, code);
     
     if (!verification.valid) {
         return new Response(JSON.stringify({ message: verification.message }), { status: 400 })
     }
 
-    const users = await query("SELECT * FROM users WHERE email = $1", [email])
+    const users = await query("SELECT * FROM users WHERE email = $1", [cleanEmail])
     const user = users[0]
 
     if (!user) {
@@ -24,7 +29,7 @@ export async function POST(request) {
     }
 
     if (!user.is_verified) {
-        await query("UPDATE users SET is_verified = TRUE WHERE email = $1", [email])
+        await query("UPDATE users SET is_verified = TRUE WHERE email = $1", [cleanEmail])
     }
     const token = generateToken(user.id)
 

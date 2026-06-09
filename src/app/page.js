@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import AuthForm from "../../components/AuthForm";
-import Dashboard from "../../components/Dashboard";
-import ChartsSection from "../../components/ChartsSection";
-import ActivityForm from "../../components/ActivityForm";
-import ActivitiesList from "../../components/ActivitiesList";
-import Toast from "../../components/Toast";
+import AuthForm from "../components/AuthForm";
+import Dashboard from "../components/Dashboard";
+import ChartsSection from "../components/ChartsSection";
+import ActivityForm from "../components/ActivityForm";
+import ActivitiesList from "../components/ActivitiesList";
+import Toast from "../components/Toast";
 
 export default function Home() {
   const [user, setUser] = useState(null);

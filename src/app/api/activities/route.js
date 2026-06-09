@@ -1,18 +1,9 @@
-import { getUserFromToken } from "../../../../lib/auth";
 import { query } from "../../../../lib/db";
+import { requireAuth, createErrorResponse, createSuccessResponse } from "../../../../lib/api-auth";
 
 export async function GET(request) {
-  const token = request.headers.get("authorization")?.replace("Bearer ", "");
-  const user = await getUserFromToken(token);
-
-  if (!user) {
-    return new Response(JSON.stringify({ message: "No autorizado" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
   try {
+    const user = await requireAuth(request);
     const activities = await query(
       `SELECT id, name, date, start_time, end_time, location, cycle, hours, manual_hours, created_at, activity_type
        FROM activities 
@@ -44,17 +35,8 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const token = request.headers.get("authorization")?.replace("Bearer ", "");
-  const user = await getUserFromToken(token);
-
-  if (!user) {
-    return new Response(JSON.stringify({ message: "No autorizado" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
   try {
+    const user = await requireAuth(request);
     const {
       name,
       date,
