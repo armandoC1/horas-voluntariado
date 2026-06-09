@@ -1,5 +1,5 @@
 import { getUserFromToken } from "./auth"
-
+//
 export class UnauthorizedError extends Error {
   constructor(message = "No autorizado") {
     super(message)
