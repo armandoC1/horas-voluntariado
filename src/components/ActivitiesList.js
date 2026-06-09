@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 import ConfirmModal from "./ConfirmModal";
 
 function ActivitiesList({
@@ -75,61 +77,148 @@ function ActivitiesList({
     setDeleteModal({ isOpen: false, activityId: null, activityName: "" });
   };
 
-  const downloadCSV = () => {
-    if (activities.length === 0) {
-      showToast("No hay actividades para exportar", "error");
-      return;
-    }
+  const fetchAllActivities = async () => {
+    const token = localStorage.getItem("token");
+    const params = new URLSearchParams();
+    if (filterCycle && filterCycle !== "all") params.append("cycle", filterCycle);
 
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent +=
-      "Fecha,Actividad,Tipo,Lugar,Hora Entrada,Hora Salida,Horas,Ciclo\n";
-
-    activities.forEach((activity) => {
-      const date = new Date(activity.date);
-      const formattedDate = date.toLocaleDateString("es-ES");
-      const formattedStartTime = formatTime12Hour(activity.start_time);
-      const formattedEndTime = formatTime12Hour(activity.end_time);
-
-      const row = [
-        formattedDate,
-        activity.name,
-        activity.activity_type || "General",
-        activity.location,
-        formattedStartTime,
-        formattedEndTime,
-        activity.hours ? Number.parseFloat(activity.hours).toFixed(1) : "0.0",
-        activity.cycle,
-      ];
-
-      const escapedRow = row.map((field) => {
-        if (
-          typeof field === "string" &&
-          (field.includes(",") || field.includes("\n"))
-        ) {
-          return `"${field}"`;
-        }
-        return field;
-      });
-
-      csvContent += escapedRow.join(",") + "\n";
+    const response = await fetch(`/api/activities/export?${params.toString()}`, {
+      headers: { Authorization: `Bearer ${token}` },
     });
 
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    if (!response.ok) throw new Error("Error al cargar actividades");
+    const data = await response.json();
+    return data.activities;
+  };
 
-    const fileName =
-      filterCycle !== "all"
-        ? `horas_voluntariado_ciclo_${filterCycle}.csv`
-        : "horas_voluntariado_todos_ciclos.csv";
+  const exportCSV = async () => {
+    try {
+      const allActivities = await fetchAllActivities();
 
-    link.setAttribute("download", fileName);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      if (allActivities.length === 0) {
+        showToast("No hay actividades para exportar", "error");
+        return;
+      }
 
-    showToast("Archivo CSV descargado correctamente", "success");
+      let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // BOM for Excel
+      csvContent +=
+        "Fecha,Actividad,Tipo,Lugar,Hora Entrada,Hora Salida,Horas,Ciclo\n";
+
+      allActivities.forEach((activity) => {
+        const date = new Date(activity.date);
+        const formattedDate = date.toLocaleDateString("es-ES");
+        const formattedStartTime = formatTime12Hour(activity.start_time);
+        const formattedEndTime = formatTime12Hour(activity.end_time);
+
+        const row = [
+          formattedDate,
+          activity.name,
+          activity.activity_type || "General",
+          activity.location,
+          formattedStartTime,
+          formattedEndTime,
+          activity.hours ? Number.parseFloat(activity.hours).toFixed(1) : "0.0",
+          activity.cycle,
+        ];
+
+        const escapedRow = row.map((field) => {
+          if (
+            typeof field === "string" &&
+            (field.includes(",") || field.includes("\n"))
+          ) {
+            return `"${field}"`;
+          }
+          return field;
+        });
+
+        csvContent += escapedRow.join(",") + "\n";
+      });
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+
+      const fileName =
+        filterCycle !== "all"
+          ? `horas_voluntariado_ciclo_${filterCycle}.csv`
+          : "horas_voluntariado_todos_ciclos.csv";
+
+      link.setAttribute("download", fileName);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showToast("Archivo CSV descargado correctamente", "success");
+    } catch (error) {
+      console.error("Export CSV error:", error);
+      showToast("Error al exportar CSV", "error");
+    }
+  };
+
+  const exportPDF = async () => {
+    try {
+      const allActivities = await fetchAllActivities();
+
+      if (allActivities.length === 0) {
+        showToast("No hay actividades para exportar", "error");
+        return;
+      }
+
+      const doc = new jsPDF({ orientation: "landscape" });
+      const title =
+        filterCycle !== "all"
+          ? `Registro de Voluntariado - Ciclo ${filterCycle}`
+          : "Registro de Voluntariado - Todos los Ciclos";
+
+      doc.setFontSize(16);
+      doc.text(title, 14, 20);
+      doc.setFontSize(10);
+      doc.text(`Generado el: ${new Date().toLocaleDateString("es-ES")}`, 14, 28);
+
+      const body = allActivities.map((activity) => {
+        const date = new Date(activity.date).toLocaleDateString("es-ES");
+        return [
+          date,
+          activity.name,
+          activity.activity_type || "General",
+          activity.location,
+          formatTime12Hour(activity.start_time),
+          formatTime12Hour(activity.end_time),
+          activity.hours ? Number.parseFloat(activity.hours).toFixed(1) + "h" : "-",
+          activity.cycle,
+        ];
+      });
+
+      autoTable(doc, {
+        startY: 35,
+        head: [["Fecha", "Actividad", "Tipo", "Lugar", "Entrada", "Salida", "Horas", "Ciclo"]],
+        body,
+        theme: "grid",
+        headStyles: {
+          fillColor: [79, 70, 229],
+          textColor: 255,
+          fontStyle: "bold",
+        },
+        styles: {
+          fontSize: 9,
+          cellPadding: 2,
+        },
+        alternateRowStyles: {
+          fillColor: [249, 250, 251],
+        },
+      });
+
+      const fileName =
+        filterCycle !== "all"
+          ? `horas_voluntariado_ciclo_${filterCycle}.pdf`
+          : "horas_voluntariado_todos_ciclos.pdf";
+
+      doc.save(fileName);
+      showToast("PDF descargado correctamente", "success");
+    } catch (error) {
+      console.error("Export PDF error:", error);
+      showToast("Error al generar PDF", "error");
+    }
   };
 
   const { page, limit, total, totalPages } = pagination;
@@ -185,9 +274,28 @@ function ActivitiesList({
                 </option>
               ))}
             </select>
-            <button onClick={downloadCSV} className="btn-secondary">
-              Descargar CSV/Excel
-            </button>
+            <div className="export-buttons">
+              <button onClick={exportCSV} className="btn-export btn-export-csv" title="Exportar CSV">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                CSV
+              </button>
+              <button onClick={exportPDF} className="btn-export btn-export-pdf" title="Exportar PDF">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <path d="M9 13h6"></path>
+                  <path d="M9 17h6"></path>
+                  <path d="M9 9h1"></path>
+                </svg>
+                PDF
+              </button>
+            </div>
           </div>
         </div>
 
