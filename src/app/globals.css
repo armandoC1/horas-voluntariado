@@ -12,6 +12,20 @@
   --radius: 8px;
 }
 
+.dark {
+  --primary-color: #818cf8;
+  --primary-dark: #a5b4fc;
+  --primary-light: #6366f1;
+  --secondary-color: #34d399;
+  --text-color: #f3f4f6;
+  --text-light: #9ca3af;
+  --background-color: #1f2937;
+  --background-light: #111827;
+  --border-color: #374151;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --radius: 8px;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -24,6 +38,12 @@ body {
   color: var(--text-color);
   line-height: 1.6;
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dark body {
+  background-color: var(--background-light);
+  color: var(--text-color);
 }
 
 /* Estilos de autenticación */
@@ -208,9 +228,9 @@ h3 {
 }
 
 .btn-cancel-edit {
-  background-color: #f3f4f6;
-  color: #4b5563;
-  border: 1px solid #d1d5db;
+  background-color: var(--background-light);
+  color: var(--text-light);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
@@ -222,8 +242,8 @@ h3 {
 }
 
 .btn-cancel-edit:hover {
-  background-color: #e5e7eb;
-  border-color: #9ca3af;
+  background-color: var(--border-color);
+  border-color: var(--text-light);
 }
 
 .select-new-year {
@@ -352,7 +372,7 @@ select:focus {
 }
 
 .btn-secondary {
-  background-color: white;
+  background-color: var(--background-color);
   color: var(--primary-color);
   border: 1px solid var(--primary-color);
   border-radius: var(--radius);
@@ -478,7 +498,7 @@ th {
 }
 
 .toast {
-  background-color: white;
+  background-color: var(--background-color);
   color: var(--text-color);
   border-left: 4px solid var(--primary-color);
   border-radius: var(--radius);
@@ -695,7 +715,7 @@ footer {
 /* Sidebar - Desktop */
 .sidebar {
   width: 260px;
-  background-color: white;
+  background-color: var(--background-color);
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
@@ -759,7 +779,7 @@ footer {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: white;
+  background: var(--background-color);
   border: 1px solid var(--border-color);
   color: var(--primary-color);
   cursor: pointer;
@@ -804,9 +824,44 @@ footer {
   color: white;
 }
 
-.sidebar-footer {
+.sidebar-theme {
   margin-top: auto;
-  padding-top: 1.5rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--border-color);
+  margin-bottom: 0.5rem;
+}
+
+.sidebar.collapsed .sidebar-theme {
+  display: none;
+}
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background-color: var(--background-light);
+  color: var(--text-color);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-toggle:hover {
+  background-color: var(--border-color);
+}
+
+.theme-toggle:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.sidebar-footer {
+  padding-top: 0.5rem;
   border-top: 1px solid var(--border-color);
   opacity: 1;
   transition: opacity 0.2s ease;
@@ -826,7 +881,7 @@ footer {
 .logout-btn {
   width: 100%;
   padding: 0.6rem;
-  background-color: white;
+  background-color: var(--background-color);
   color: var(--text-light);
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
@@ -920,7 +975,7 @@ footer {
     align-items: center;
     gap: 1rem;
     padding: 1rem;
-    background: white;
+    background: var(--background-color);
     border-bottom: 1px solid var(--border-color);
     position: fixed;
     top: 0;
@@ -1009,7 +1064,7 @@ footer {
 }
 
 .modal-container {
-  background: white;
+  background: var(--background-color);
   border-radius: 12px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
   width: 100%;
@@ -1047,7 +1102,7 @@ footer {
   border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;
-  background: white;
+  background: var(--background-color);
   z-index: 1;
   border-radius: 12px 12px 0 0;
 }
@@ -1073,7 +1128,7 @@ footer {
 }
 
 .modal-close-btn:hover {
-  background-color: #f3f4f6;
+  background-color: var(--background-light);
   color: var(--text-color);
 }
 
@@ -1155,7 +1210,7 @@ footer {
   font-weight: 600;
   cursor: pointer;
   border: 1px solid var(--border-color);
-  background-color: white;
+  background-color: var(--background-color);
   color: var(--text-color);
   transition: all 0.15s ease;
 }
@@ -1225,7 +1280,7 @@ footer {
   gap: 0.35rem;
   padding: 0.5rem 0.85rem;
   border: 1px solid var(--border-color);
-  background-color: white;
+  background-color: var(--background-color);
   color: var(--text-color);
   border-radius: 6px;
   font-size: 0.875rem;
@@ -1263,4 +1318,105 @@ footer {
     padding: 0.45rem 0.7rem;
     font-size: 0.8rem;
   }
+}
+
+/* ========================================
+   BADGES & ACTION BUTTONS (from ActivitiesList)
+   ======================================== */
+.type-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.type-badge.grande {
+  background-color: #fff7ed;
+  color: #9a3412;
+  border: 1px solid #fdba74;
+}
+.type-badge.pequeña {
+  background-color: #f0fdf4;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+.hours-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background-color: var(--background-light);
+  color: var(--text-color);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid var(--border-color);
+}
+.manual-indicator {
+  color: #d97706;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.action-btn.edit {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+.action-btn.edit:hover {
+  background-color: #dbeafe;
+  transform: scale(1.1);
+}
+.action-btn.delete {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+.action-btn.delete:hover {
+  background-color: #fee2e2;
+  transform: scale(1.1);
+}
+
+/* ========================================
+   DARK MODE TRANSITIONS
+   ======================================== */
+html,
+body,
+.sidebar,
+.app-main,
+.auth-container,
+.auth-card,
+.form-section,
+.activities-section,
+.stat-card,
+.modal-container,
+.modal-header,
+.table-wrapper,
+input,
+select,
+button,
+.pagination-btn,
+.pagination-page,
+.export-buttons .btn-export,
+.theme-toggle,
+.btn-cancel-edit,
+.hours-badge {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }

@@ -25,7 +25,7 @@ export default function NotFound() {
         <h2 style={{ color: '#4f46e5', marginBottom: '1rem' }}>
           Página no encontrada
         </h2>
-        <p style={{ color: '#6b7280', marginBottom: '2rem', lineHeight: '1.5' }}>
+        <p style={{ color: 'var(--text-light)', marginBottom: '2rem', lineHeight: '1.5' }}>
           La página que buscas no existe o fue movida.
         </p>
         <Link

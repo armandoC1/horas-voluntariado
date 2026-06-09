@@ -28,7 +28,7 @@ export default function Error({ error, reset }) {
         <h2 style={{ color: '#1f2937', marginBottom: '1rem' }}>
           Algo salió mal
         </h2>
-        <p style={{ color: '#6b7280', marginBottom: '2rem', lineHeight: '1.5' }}>
+        <p style={{ color: 'var(--text-light)', marginBottom: '2rem', lineHeight: '1.5' }}>
           Hubo un error inesperado. Intenta recargar la página.
         </p>
         <button

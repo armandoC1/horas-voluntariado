@@ -1,6 +1,7 @@
 import "./globals.css";
 import Script from "next/script";
 import manifest from "./manifest";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata = {
   title:
@@ -56,7 +57,11 @@ export default function RootLayout({ children }) {
           }}
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

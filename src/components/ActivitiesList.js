@@ -381,7 +381,7 @@ function ActivitiesList({
 
           {activities.length === 0 && (
             <p
-              style={{ textAlign: "center", padding: "2rem", color: "#6b7280" }}
+              style={{ textAlign: "center", padding: "2rem", color: "var(--text-light)" }}
             >
               No hay actividades registradas
               {filterCycle !== "all" && ` para el ciclo ${filterCycle}`}
@@ -447,89 +447,7 @@ function ActivitiesList({
         type="danger"
       />
 
-      <style jsx>{`
-        /* Badges de tipo de actividad - diseño limpio */
-        .type-badge {
-          display: inline-block;
-          padding: 3px 10px;
-          border-radius: 6px;
-          font-size: 0.75rem;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-        .type-badge.grande {
-          background-color: #fff7ed;
-          color: #9a3412;
-          border: 1px solid #fdba74;
-        }
-        .type-badge.pequeña {
-          background-color: #f0fdf4;
-          color: #166534;
-          border: 1px solid #86efac;
-        }
 
-        /* Badge de horas (esquema antiguo) */
-        .hours-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 3px;
-          background-color: #f3f4f6;
-          color: #374151;
-          padding: 3px 8px;
-          border-radius: 6px;
-          font-size: 0.8rem;
-          font-weight: 500;
-        }
-        .manual-indicator {
-          color: #d97706;
-          font-size: 0.7rem;
-          font-weight: 700;
-        }
-
-        /* Botones de acción */
-        .action-buttons {
-          display: flex;
-          gap: 4px;
-          justify-content: center;
-        }
-        .action-btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 34px;
-          height: 34px;
-          border-radius: 6px;
-          border: none;
-          cursor: pointer;
-          transition: all 0.15s ease;
-        }
-        .action-btn.edit {
-          background-color: #eff6ff;
-          color: #2563eb;
-        }
-        .action-btn.edit:hover {
-          background-color: #dbeafe;
-          transform: scale(1.1);
-        }
-        .action-btn.delete {
-          background-color: #fef2f2;
-          color: #dc2626;
-        }
-        .action-btn.delete:hover {
-          background-color: #fee2e2;
-          transform: scale(1.1);
-        }
-
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-      `}</style>
     </>
   );
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function AppLayout({ children }) {
   const [user, setUser] = useState(null);
@@ -65,7 +66,7 @@ export default function AppLayout({ children }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%)" }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--background-light)" }}>
         <div style={{ textAlign: "center" }}>
           <div style={{
             width: '56px',
@@ -90,7 +91,7 @@ export default function AppLayout({ children }) {
               animation: 'spin 1.5s linear infinite reverse'
             }} />
           </div>
-          <p style={{ color: '#6b7280', fontSize: '0.95rem', fontWeight: 500 }}>Verificando sesión...</p>
+          <p style={{ color: 'var(--text-light)', fontSize: '0.95rem', fontWeight: 500 }}>Verificando sesión...</p>
           <style>{`
             @keyframes spin {
               to { transform: rotate(360deg); }
@@ -163,6 +164,10 @@ export default function AppLayout({ children }) {
             </Link>
           ))}
         </nav>
+
+        <div className="sidebar-theme">
+          <ThemeToggle />
+        </div>
 
         <div className="sidebar-footer">
           <div className="user-name">{user?.name}</div>
