@@ -24,12 +24,14 @@ jobs:
           if [ "${{ github.ref }}" == "refs/heads/main" ]; then
             echo "DEST_PATH=$HOME/apps/horas-voluntariado-app/horas-voluntariado-prod" >> $GITHUB_ENV
             echo "PM2_NAME=horas-voluntariado-prod" >> $GITHUB_ENV
+            echo "APP_PORT=3000" >> $GITHUB_ENV
             echo "ENV_CONTENT<<EOF" >> $GITHUB_ENV
             echo "${{ secrets.DOTENV_PROD }}" >> $GITHUB_ENV
             echo "EOF" >> $GITHUB_ENV
           else
             echo "DEST_PATH=$HOME/apps/horas-voluntariado-app/horas-voluntariado-dev" >> $GITHUB_ENV
             echo "PM2_NAME=horas-voluntariado-dev" >> $GITHUB_ENV
+            echo "APP_PORT=3001" >> $GITHUB_ENV
             echo "ENV_CONTENT<<EOF" >> $GITHUB_ENV
             echo "${{ secrets.DOTENV_QA }}" >> $GITHUB_ENV
             echo "EOF" >> $GITHUB_ENV
@@ -41,6 +43,7 @@ jobs:
           # El uso de EOF aquí asegura que el .env se escriba con todas sus líneas
           cat <<EOF > .env
           ${{ env.ENV_CONTENT }}
+          PORT=${{ env.APP_PORT }}
           EOF
           npm run build
 
