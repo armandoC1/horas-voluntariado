@@ -44,7 +44,7 @@ export async function GET(request) {
     ]);
     
     const total = parseInt(countResult[0].count);
-    const totalPages = Math.ceil(total / limit);
+    const totalPages = limit > 0 ? Math.ceil(total / limit) : 1;
     const availableCycles = cyclesResult.map(r => r.cycle);
 
     return createSuccessResponse({

@@ -19,7 +19,7 @@ export function useActivities(page = 1, limit = 10, cycle = "all") {
       
       const params = new URLSearchParams();
       params.append("page", String(page));
-      if (limit > 0) params.append("limit", String(limit));
+      params.append("limit", String(limit));
       if (cycle && cycle !== "all") params.append("cycle", cycle);
       
       const response = await fetch(`/api/activities?${params.toString()}`, {
