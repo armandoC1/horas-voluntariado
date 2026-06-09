@@ -7,10 +7,11 @@ export async function GET(request) {
     
     const { searchParams } = new URL(request.url);
     const page = Math.max(1, parseInt(searchParams.get("page")) || 1);
-    const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit")) || 10));
+    const limitParam = searchParams.get("limit");
+    const limit = limitParam === "0" ? 0 : Math.min(50, Math.max(1, parseInt(limitParam) || 10));
     const cycle = searchParams.get("cycle");
     
-    const offset = (page - 1) * limit;
+    const offset = limit > 0 ? (page - 1) * limit : 0;
     
     let countQuery = `SELECT COUNT(*) FROM activities WHERE user_id = $1`;
     let countParams = [user.id];
@@ -28,8 +29,11 @@ export async function GET(request) {
       paramIndex++;
     }
     
-    dataQuery += ` ORDER BY date DESC, created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
-    dataParams.push(limit, offset);
+    dataQuery += ` ORDER BY date DESC, created_at DESC`;
+    if (limit > 0) {
+      dataQuery += ` LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+      dataParams.push(limit, offset);
+    }
     
     const cyclesQuery = `SELECT DISTINCT cycle FROM activities WHERE user_id = $1 ORDER BY cycle`;
     

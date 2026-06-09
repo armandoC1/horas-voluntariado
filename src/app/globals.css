@@ -249,9 +249,16 @@ h3 {
 .select-new-year {
   width: 100%;
   padding: 10px;
-  border: 2px solid #0070f3;
+  border: 2px solid var(--primary-color);
   border-radius: 5px;
-  background: #f0f7ff;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+/* Force theme-aware colors on native select options in dark mode */
+select option {
+  background-color: var(--background-color);
+  color: var(--text-color);
 }
 
 .form-group {

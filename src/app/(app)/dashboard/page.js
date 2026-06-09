@@ -9,7 +9,7 @@ import { useActivities } from "@/hooks/useActivities";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { activities, loading } = useActivities();
+  const { activities, loading } = useActivities(1, 0);
   const [toast, setToast] = useState(null);
 
   useEffect(() => {

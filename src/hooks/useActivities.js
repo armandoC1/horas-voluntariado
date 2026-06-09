@@ -17,7 +17,9 @@ export function useActivities(page = 1, limit = 10, cycle = "all") {
       const token = localStorage.getItem("token");
       if (!token) return;
       
-      const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+      const params = new URLSearchParams();
+      params.append("page", String(page));
+      if (limit > 0) params.append("limit", String(limit));
       if (cycle && cycle !== "all") params.append("cycle", cycle);
       
       const response = await fetch(`/api/activities?${params.toString()}`, {
