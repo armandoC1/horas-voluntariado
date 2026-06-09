@@ -61,6 +61,7 @@ export default function AppLayout({ children }) {
   const menuItems = [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/activities", label: "Actividades" },
+    { href: "/profile", label: "Mi Perfil" },
     { href: "/about", label: "Acerca de" },
   ];
 
