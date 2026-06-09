@@ -58,8 +58,17 @@ jobs:
         run: |
           cd ${{ env.DEST_PATH }}
           npm install --production
-          pm2 restart ${{ env.PM2_NAME }} || pm2 start npm --name "${{ env.PM2_NAME }}" --cwd "${{ env.DEST_PATH }}" -- start
+          # Matar proceso viejo para forzar lectura del nuevo .env
+          pm2 delete ${{ env.PM2_NAME }} || true
+          # Iniciar con PORT explícito (Next.js >= 13 lo respeta)
+          PORT=${{ env.APP_PORT }} pm2 start npm --name "${{ env.PM2_NAME }}" --cwd "${{ env.DEST_PATH }}" -- start
           pm2 save
+
+      - name: Verificar puerto del servicio
+        run: |
+          sleep 3
+          pm2 show ${{ env.PM2_NAME }} | grep -E "pid|port|status" || true
+          echo "✅ Deploy completado en puerto ${{ env.APP_PORT }}"
 
       - name: Notificar a Slack
         uses: rtCamp/action-slack-notify@v2
