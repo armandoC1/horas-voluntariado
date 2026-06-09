@@ -1,8 +1,24 @@
 import { query } from "../../../../../lib/db";
 import { hashPassword } from "../../../../../lib/auth";
 import { generateAndSendOtp, verifyOTPCode } from "../../../../../lib/otp";
+import { checkRateLimit, resetPasswordLimiter } from "../../../../../lib/rate-limit";
 
 export async function POST(request) {
+  const ip = request.headers.get('x-forwarded-for') || 'unknown';
+  const rateLimit = await checkRateLimit(resetPasswordLimiter, ip);
+  
+  if (!rateLimit.allowed) {
+    return new Response(
+      JSON.stringify({ 
+        message: `Demasiados intentos de recuperación. Intenta de nuevo en ${rateLimit.retryAfter} segundos.` 
+      }),
+      { 
+        status: 429, 
+        headers: { "Content-Type": "application/json" } 
+      }
+    );
+  }
+
   try {
     const { email } = await request.json();
 

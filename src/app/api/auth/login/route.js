@@ -1,10 +1,26 @@
 import { verifyPassword } from "../../../../../lib/auth";
 import { query } from "../../../../../lib/db";
 import { generateAndSendOtp } from "../../../../../lib/otp";
+import { checkRateLimit, loginLimiter } from "../../../../../lib/rate-limit";
 
 export async function POST(request) {
+
+  const ip = request.headers.get('x-forwarded-for') || 'unknown';
+  const rateLimit = await checkRateLimit(loginLimiter, ip);
+  
+  if (!rateLimit.allowed) {
+    return new Response(
+      JSON.stringify({ 
+        message: `Demasiados intentos. Intenta de nuevo en ${rateLimit.retryAfter} segundos.` 
+      }),
+      { 
+        status: 429, 
+        headers: { "Content-Type": "application/json" } 
+      }
+    );
+  }
+
   try {
-    // 1. Limpiamos el email (quitar espacios accidentales)
     let { email, password } = await request.json();
     email = email.trim();
 
@@ -18,7 +34,6 @@ export async function POST(request) {
       );
     }
 
-    // 2. Buscar usuario en la base de datos
     const users = await query(
       "SELECT id, name, email, password FROM users WHERE email = $1",
       [email]
@@ -26,7 +41,7 @@ export async function POST(request) {
 
     const user = users[0];
 
-    // Si no existe el usuario
+    // si no existe el usuario
     if (!user) {
       return new Response(
         JSON.stringify({ message: "Credenciales incorrectas" }),
@@ -37,8 +52,6 @@ export async function POST(request) {
       );
     }
 
-    // 3. VERIFICACIÓN DE CONTRASEÑA (ACTIVA)
-    // Comparamos la contraseña que escribió con la encriptada en la DB
     const isValidPassword = await verifyPassword(password, user.password);
 
     if (!isValidPassword) {
@@ -51,13 +64,10 @@ export async function POST(request) {
       );
     }
 
-    // 4. Generar y Enviar OTP
-    // Usamos user.email para asegurar que se envía al correo registrado
     console.log(`Intentando enviar OTP a: ${user.email}`);
     
     const emailSent = await generateAndSendOtp(user.email);
 
-    // Si falla el envío (Hostinger/DB error), avisamos
     if (!emailSent) {
       return new Response(
         JSON.stringify({ message: "Error al enviar el código de verificación." }),
@@ -68,12 +78,11 @@ export async function POST(request) {
       );
     }
 
-    // 5. Éxito: Pedimos al Frontend que muestre la pantalla de código
     return new Response(
       JSON.stringify({
         success: true,
         message: "Credenciales válidas. Verifique su correo.",
-        requireOtp: true, // <--- Importante: sin la 'd' al final
+        requireOtp: true, 
         email: user.email,
       }),
       {

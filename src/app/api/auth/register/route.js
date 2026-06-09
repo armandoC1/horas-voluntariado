@@ -1,12 +1,28 @@
 import { hashPassword, generateToken } from "../../../../../lib/auth";
 import { query } from "../../../../../lib/db";
 import { generateAndSendOtp } from "../../../../../lib/otp";
+import { checkRateLimit, registerLimiter } from "../../../../../lib/rate-limit";
 
 export async function POST(request) {
+  const ip = request.headers.get('x-forwarded-for') || 'unknown';
+  const rateLimit = await checkRateLimit(registerLimiter, ip);
+  
+  if (!rateLimit.allowed) {
+    return new Response(
+      JSON.stringify({ 
+        message: `Demasiados registros. Intenta de nuevo en ${rateLimit.retryAfter} segundos.` 
+      }),
+      { 
+        status: 429, 
+        headers: { "Content-Type": "application/json" } 
+      }
+    );
+  }
+
   try {
     const { name, email, password } = await request.json();
 
-    // Validaciones
+    // validaciones
     if (!name || !email || !password) {
       return new Response(
         JSON.stringify({ message: "Todos los campos son obligatorios" }),
@@ -37,7 +53,6 @@ export async function POST(request) {
       });
     }
 
-    // Verificar si el usuario ya existe
     const existingUsers = await query("SELECT id FROM users WHERE email = $1", [
       email,
     ]);
@@ -52,16 +67,12 @@ export async function POST(request) {
       );
     }
 
-    // Crear usuario
     const hashedPassword = await hashPassword(password);
 
     await query(
       "INSERT INTO users (name, email, password, is_verified) VALUES ($1, $2, $3, FALSE)",
       [name, email, hashedPassword]
     );
-
-    // const userId = result[0].id;
-    // const token = generateToken(userId);
 
     const emailSent = await generateAndSendOtp(email);
 
