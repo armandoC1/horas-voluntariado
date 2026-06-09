@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-function ActivityForm({ onActivityCreated, onActivityUpdated, showToast }) {
+function ActivityForm({ onActivityCreated, onActivityUpdated, showToast, activityToEdit, onCancelEdit }) {
   const [formData, setFormData] = useState({
     name: "",
     date: "",
@@ -27,6 +27,52 @@ function ActivityForm({ onActivityCreated, onActivityUpdated, showToast }) {
       setIsNewYear(year >= 2026);
     }
   }, [formData.date]);
+
+  // Cargar datos cuando se recibe una actividad para editar
+  useEffect(() => {
+    if (activityToEdit) {
+      setEditingId(activityToEdit.id);
+      
+      // Parsear horas si existen
+      let startHour = "8", startMinute = "00", startAmPm = "AM";
+      let endHour = "5", endMinute = "00", endAmPm = "PM";
+      
+      if (activityToEdit.start_time) {
+        const [hours24, minutes] = activityToEdit.start_time.split(":");
+        let hourInt = parseInt(hours24);
+        startAmPm = hourInt >= 12 ? "PM" : "AM";
+        hourInt = hourInt % 12;
+        hourInt = hourInt === 0 ? 12 : hourInt;
+        startHour = String(hourInt);
+        startMinute = minutes;
+      }
+      
+      if (activityToEdit.end_time) {
+        const [hours24, minutes] = activityToEdit.end_time.split(":");
+        let hourInt = parseInt(hours24);
+        endAmPm = hourInt >= 12 ? "PM" : "AM";
+        hourInt = hourInt % 12;
+        hourInt = hourInt === 0 ? 12 : hourInt;
+        endHour = String(hourInt);
+        endMinute = minutes;
+      }
+
+      setFormData({
+        name: activityToEdit.name || "",
+        date: activityToEdit.date ? new Date(activityToEdit.date).toISOString().split('T')[0] : "",
+        startHour,
+        startMinute,
+        startAmPm,
+        endHour,
+        endMinute,
+        endAmPm,
+        location: activityToEdit.location || "",
+        cycle: String(activityToEdit.cycle) || "",
+        manualHours: activityToEdit.manual_hours && activityToEdit.hours ? String(activityToEdit.hours) : "",
+        activity_type: activityToEdit.activity_type || "",
+      });
+    }
+  }, [activityToEdit]);
 
   const convert12hTo24h = (hour, minute, ampm) => {
     let hourInt = Number.parseInt(hour, 10);
@@ -144,7 +190,7 @@ function ActivityForm({ onActivityCreated, onActivityUpdated, showToast }) {
   };
 
   return (
-    <section className="form-section">
+    <section id="activity-form-section" className="form-section">
       <h2 style={{ transition: "all 0.3s ease" }}>
         {editingId ? "Editar Actividad" : "Registrar Nueva Actividad"}
       </h2>
@@ -343,13 +389,34 @@ function ActivityForm({ onActivityCreated, onActivityUpdated, showToast }) {
         {editingId && (
           <button
             type="button"
-            className="btn-secondary"
             onClick={() => {
               setEditingId(null);
               resetForm();
+              if (onCancelEdit) onCancelEdit();
+            }}
+            style={{
+              backgroundColor: "#f3f4f6",
+              color: "#4b5563",
+              border: "1px solid #d1d5db",
+              borderRadius: "8px",
+              padding: "0.75rem 1.5rem",
+              fontSize: "1rem",
+              fontWeight: "500",
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+              width: "100%",
+              marginTop: "0.5rem",
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = "#e5e7eb";
+              e.target.style.borderColor = "#9ca3af";
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = "#f3f4f6";
+              e.target.style.borderColor = "#d1d5db";
             }}
           >
-            Cancelar
+            Cancelar edición
           </button>
         )}
       </form>

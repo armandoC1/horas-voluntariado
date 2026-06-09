@@ -14,6 +14,7 @@ export async function PUT(request, { params }) {
       cycle,
       hours,
       manual_hours,
+      activity_type,
     } = await request.json();
 
     const activities = await query(
@@ -33,8 +34,8 @@ export async function PUT(request, { params }) {
 
     await query(
       `UPDATE activities 
-       SET name = $1, date = $2, start_time = $3, end_time = $4, location = $5, cycle = $6, hours = $7, manual_hours = $8
-       WHERE id = $9 AND user_id = $10`,
+       SET name = $1, date = $2, start_time = $3, end_time = $4, location = $5, cycle = $6, hours = $7, manual_hours = $8, activity_type = $9
+       WHERE id = $10 AND user_id = $11`,
       [
         name,
         date,
@@ -44,6 +45,7 @@ export async function PUT(request, { params }) {
         cycle,
         hours,
         manual_hours || false,
+        activity_type || null,
         id,
         user.id,
       ]
