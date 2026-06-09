@@ -3,20 +3,23 @@
 import { useState } from "react";
 import ConfirmModal from "./ConfirmModal";
 
-function ActivitiesList({ activities, onActivityDeleted, onActivityEdit, onCreateClick, showToast }) {
-  const [filterCycle, setFilterCycle] = useState("all");
+function ActivitiesList({
+  activities,
+  pagination,
+  availableCycles,
+  filterCycle,
+  onCycleChange,
+  onPageChange,
+  onActivityDeleted,
+  onActivityEdit,
+  onCreateClick,
+  showToast,
+}) {
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
     activityId: null,
     activityName: "",
   });
-
-  const getAllCycles = () => {
-    if (activities.length === 0) return [];
-    return [...new Set(activities.map((activity) => activity.cycle))].sort(
-      (a, b) => a - b,
-    );
-  };
 
   const formatTime12Hour = (timeString) => {
     if (!timeString) return "--:--";
@@ -73,14 +76,7 @@ function ActivitiesList({ activities, onActivityDeleted, onActivityEdit, onCreat
   };
 
   const downloadCSV = () => {
-    let dataToExport = activities;
-    if (filterCycle !== "all") {
-      dataToExport = activities.filter(
-        (activity) => activity.cycle === Number.parseInt(filterCycle),
-      );
-    }
-
-    if (dataToExport.length === 0) {
+    if (activities.length === 0) {
       showToast("No hay actividades para exportar", "error");
       return;
     }
@@ -89,7 +85,7 @@ function ActivitiesList({ activities, onActivityDeleted, onActivityEdit, onCreat
     csvContent +=
       "Fecha,Actividad,Tipo,Lugar,Hora Entrada,Hora Salida,Horas,Ciclo\n";
 
-    dataToExport.forEach((activity) => {
+    activities.forEach((activity) => {
       const date = new Date(activity.date);
       const formattedDate = date.toLocaleDateString("es-ES");
       const formattedStartTime = formatTime12Hour(activity.start_time);
@@ -136,16 +132,25 @@ function ActivitiesList({ activities, onActivityDeleted, onActivityEdit, onCreat
     showToast("Archivo CSV descargado correctamente", "success");
   };
 
-  const filteredActivities =
-    filterCycle === "all"
-      ? activities
-      : activities.filter(
-          (activity) => String(activity.cycle) === String(filterCycle),
-        );
+  const { page, limit, total, totalPages } = pagination;
+  const startItem = total === 0 ? 0 : (page - 1) * limit + 1;
+  const endItem = Math.min(page * limit, total);
 
-  const sortedActivities = [...filteredActivities].sort(
-    (a, b) => new Date(b.date) - new Date(a.date),
-  );
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    let start = Math.max(1, page - Math.floor(maxVisible / 2));
+    let end = Math.min(totalPages, start + maxVisible - 1);
+    
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+    
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
 
   return (
     <>
@@ -169,10 +174,12 @@ function ActivitiesList({ activities, onActivityDeleted, onActivityEdit, onCreat
             <select
               id="filter-cycle"
               value={filterCycle}
-              onChange={(e) => setFilterCycle(e.target.value)}
+              onChange={(e) => {
+                onCycleChange(e.target.value);
+              }}
             >
               <option value="all">Todos</option>
-              {getAllCycles().map((cycle) => (
+              {availableCycles.map((cycle) => (
                 <option key={cycle} value={cycle}>
                   Ciclo {cycle}
                 </option>
@@ -199,7 +206,7 @@ function ActivitiesList({ activities, onActivityDeleted, onActivityEdit, onCreat
               </tr>
             </thead>
             <tbody>
-              {sortedActivities.map((activity) => {
+              {activities.map((activity) => {
                 const date = new Date(activity.date);
                 const formattedDate = date.toLocaleDateString("es-ES");
                 const formattedStartTime = formatTime12Hour(
@@ -264,7 +271,7 @@ function ActivitiesList({ activities, onActivityDeleted, onActivityEdit, onCreat
             </tbody>
           </table>
 
-          {sortedActivities.length === 0 && (
+          {activities.length === 0 && (
             <p
               style={{ textAlign: "center", padding: "2rem", color: "#6b7280" }}
             >
@@ -273,6 +280,52 @@ function ActivitiesList({ activities, onActivityDeleted, onActivityEdit, onCreat
             </p>
           )}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="pagination">
+            <div className="pagination-info">
+              Mostrando <strong>{startItem}-{endItem}</strong> de <strong>{total}</strong> actividades
+            </div>
+            <div className="pagination-controls">
+              <button
+                className="pagination-btn"
+                onClick={() => onPageChange(page - 1)}
+                disabled={page <= 1}
+                aria-label="Página anterior"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+                Anterior
+              </button>
+
+              {getPageNumbers().map((pageNum) => (
+                <button
+                  key={pageNum}
+                  className={`pagination-page ${pageNum === page ? "active" : ""}`}
+                  onClick={() => onPageChange(pageNum)}
+                  aria-label={`Página ${pageNum}`}
+                  aria-current={pageNum === page ? "page" : undefined}
+                >
+                  {pageNum}
+                </button>
+              ))}
+
+              <button
+                className="pagination-btn"
+                onClick={() => onPageChange(page + 1)}
+                disabled={page >= totalPages}
+                aria-label="Página siguiente"
+              >
+                Siguiente
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
       </section>
 
       <ConfirmModal

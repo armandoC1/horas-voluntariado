@@ -10,7 +10,10 @@ import { useActivities } from "@/hooks/useActivities";
 
 export default function ActivitiesPage() {
   const router = useRouter();
-  const { activities, reload } = useActivities();
+  const [page, setPage] = useState(1);
+  const [filterCycle, setFilterCycle] = useState("all");
+  const { activities, availableCycles, pagination, reload } = useActivities(page, 10, filterCycle);
+  
   const [toast, setToast] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingActivity, setEditingActivity] = useState(null);
@@ -59,6 +62,16 @@ export default function ActivitiesPage() {
     showToast("Actividad eliminada correctamente", "success");
   };
 
+  const handleCycleChange = (cycle) => {
+    setFilterCycle(cycle);
+    setPage(1); // Reset to first page when filter changes
+  };
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <div className="activities-page">
       <header className="page-header">
@@ -68,6 +81,11 @@ export default function ActivitiesPage() {
 
       <ActivitiesList
         activities={activities}
+        pagination={pagination}
+        availableCycles={availableCycles}
+        filterCycle={filterCycle}
+        onCycleChange={handleCycleChange}
+        onPageChange={handlePageChange}
         onActivityDeleted={handleActivityDeleted}
         onActivityEdit={handleOpenEdit}
         onCreateClick={handleOpenCreate}

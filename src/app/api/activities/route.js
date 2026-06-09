@@ -4,33 +4,58 @@ import { requireAuth, createErrorResponse, createSuccessResponse } from "@/lib/a
 export async function GET(request) {
   try {
     const user = await requireAuth(request);
-    const activities = await query(
-      `SELECT id, name, date, start_time, end_time, location, cycle, hours, manual_hours, created_at, activity_type
+    
+    const { searchParams } = new URL(request.url);
+    const page = Math.max(1, parseInt(searchParams.get("page")) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit")) || 10));
+    const cycle = searchParams.get("cycle");
+    
+    const offset = (page - 1) * limit;
+    
+    let countQuery = `SELECT COUNT(*) FROM activities WHERE user_id = $1`;
+    let countParams = [user.id];
+    let dataQuery = `SELECT id, name, date, start_time, end_time, location, cycle, hours, manual_hours, created_at, activity_type
        FROM activities 
-       WHERE user_id = $1 
-       ORDER BY date DESC, created_at DESC`,
-      [user.id],
-    );
+       WHERE user_id = $1`;
+    let dataParams = [user.id];
+    let paramIndex = 2;
+    
+    if (cycle && cycle !== "all") {
+      countQuery += ` AND cycle = $${paramIndex}`;
+      dataQuery += ` AND cycle = $${paramIndex}`;
+      countParams.push(parseInt(cycle));
+      dataParams.push(parseInt(cycle));
+      paramIndex++;
+    }
+    
+    dataQuery += ` ORDER BY date DESC, created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+    dataParams.push(limit, offset);
+    
+    const cyclesQuery = `SELECT DISTINCT cycle FROM activities WHERE user_id = $1 ORDER BY cycle`;
+    
+    const [countResult, activities, cyclesResult] = await Promise.all([
+      query(countQuery, countParams),
+      query(dataQuery, dataParams),
+      query(cyclesQuery, [user.id]),
+    ]);
+    
+    const total = parseInt(countResult[0].count);
+    const totalPages = Math.ceil(total / limit);
+    const availableCycles = cyclesResult.map(r => r.cycle);
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        activities,
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
+    return createSuccessResponse({
+      activities,
+      availableCycles,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
       },
-    );
+    });
   } catch (error) {
     console.error("Get activities error:", error);
-    return new Response(
-      JSON.stringify({ message: "Error al obtener actividades" }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    return createErrorResponse("Error al obtener actividades", 500);
   }
 }
 
@@ -54,12 +79,7 @@ export async function POST(request) {
 
     if (currentYear >= 2026) {
       if (!name || !date || !location || !cycle || !activity_type) {
-        return new Response(
-          JSON.stringify({
-            message: "Datos de actividad incompletos para 2026",
-          }),
-          { status: 400 },
-        );
+        return createErrorResponse("Datos de actividad incompletos para 2026", 400);
       }
 
       const result = await query(
@@ -79,14 +99,10 @@ export async function POST(request) {
         ],
       );
 
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message: "Actividad 2026 registrada",
-          id: result[0].id,
-        }),
-        { status: 201 },
-      );
+      return createSuccessResponse({
+        message: "Actividad 2026 registrada",
+        id: result[0].id,
+      }, 201);
     } else {
       // Validaciones
       if (
@@ -98,13 +114,7 @@ export async function POST(request) {
         !cycle ||
         hours === undefined
       ) {
-        return new Response(
-          JSON.stringify({ message: "Todos los campos son obligatorios" }),
-          {
-            status: 400,
-            headers: { "Content-Type": "application/json" },
-          },
-        );
+        return createErrorResponse("Todos los campos son obligatorios", 400);
       }
       const result = await query(
         `INSERT INTO activities (user_id, name, date, start_time, end_time, location, cycle, hours, manual_hours)
@@ -122,26 +132,13 @@ export async function POST(request) {
         ],
       );
 
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message: "Actividad creada exitosamente",
-          id: result[0].id,
-        }),
-        {
-          status: 201,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return createSuccessResponse({
+        message: "Actividad creada exitosamente",
+        id: result[0].id,
+      }, 201);
     }
   } catch (error) {
     console.error("Create activity error:", error);
-    return new Response(
-      JSON.stringify({ message: "Error al crear actividad" }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    return createErrorResponse("Error al crear actividad", 500);
   }
 }

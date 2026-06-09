@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 function ActivityForm({ onActivityCreated, onActivityUpdated, showToast, activityToEdit, onClose }) {
-  const [formData, setFormData] = useState({
+  const initialForm = {
     name: "",
     date: "",
     startHour: "8",
@@ -16,7 +16,10 @@ function ActivityForm({ onActivityCreated, onActivityUpdated, showToast, activit
     cycle: "",
     manualHours: "",
     activity_type: "",
-  });
+  };
+
+  const [formData, setFormData] = useState(initialForm);
+  const [errors, setErrors] = useState({});
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isNewYear, setIsNewYear] = useState(false);
@@ -32,8 +35,8 @@ function ActivityForm({ onActivityCreated, onActivityUpdated, showToast, activit
   useEffect(() => {
     if (activityToEdit) {
       setEditingId(activityToEdit.id);
+      setErrors({});
       
-      // Parsear horas si existen
       let startHour = "8", startMinute = "00", startAmPm = "AM";
       let endHour = "5", endMinute = "00", endAmPm = "PM";
       
@@ -81,28 +84,102 @@ function ActivityForm({ onActivityCreated, onActivityUpdated, showToast, activit
     return `${hourInt.toString().padStart(2, "0")}:${minute.padStart(2, "0")}`;
   };
 
-  const calculateHours = (startTime, endTime) => {
-    const start = new Date(`2000-01-01T${startTime}`);
-    const end = new Date(`2000-01-01T${endTime}`);
-    let diff = end - start;
-    if (diff < 0) diff += 24 * 60 * 60 * 1000;
-    return Math.round((diff / (1000 * 60 * 60)) * 100) / 100;
+  const getStartTime = useCallback(() => {
+    return convert12hTo24h(formData.startHour, formData.startMinute, formData.startAmPm);
+  }, [formData.startHour, formData.startMinute, formData.startAmPm]);
+
+  const getEndTime = useCallback(() => {
+    return convert12hTo24h(formData.endHour, formData.endMinute, formData.endAmPm);
+  }, [formData.endHour, formData.endMinute, formData.endAmPm]);
+
+  const validateField = useCallback((name, value) => {
+    switch (name) {
+      case "name":
+        return !value.trim() ? "El nombre es obligatorio" : null;
+      case "date":
+        if (!value) return "La fecha es obligatoria";
+        const date = new Date(value);
+        const today = new Date();
+        const maxDate = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+        if (date > maxDate) return "La fecha no puede ser más de 1 año en el futuro";
+        return null;
+      case "activity_type":
+        if (isNewYear && !value) return "Selecciona un tipo de actividad";
+        return null;
+      case "location":
+        return !value.trim() ? "El lugar es obligatorio" : null;
+      case "cycle":
+        return !value ? "Selecciona un ciclo" : null;
+      case "manualHours":
+        if (value && Number.parseFloat(value) < 0) return "Las horas no pueden ser negativas";
+        return null;
+      default:
+        return null;
+    }
+  }, [isNewYear]);
+
+  const validateTimeRange = useCallback(() => {
+    if (isNewYear) {
+      // En new year horas son opcionales, pero si ambos están, validar
+      const start = getStartTime();
+      const end = getEndTime();
+      if (start && end && end <= start) {
+        return "La hora de salida debe ser después de la entrada";
+      }
+      return null;
+    } else {
+      const start = getStartTime();
+      const end = getEndTime();
+      if (end <= start) {
+        return "La hora de salida debe ser después de la entrada";
+      }
+      return null;
+    }
+  }, [isNewYear, getStartTime, getEndTime]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Limpiar error del campo que se está editando
+    const error = validateField(name, value);
+    setErrors((prev) => ({ ...prev, [name]: error }));
+    
+    // Si cambian las horas, validar también el rango
+    if (["startHour", "startMinute", "startAmPm", "endHour", "endMinute", "endAmPm"].includes(name)) {
+      // Validar en el siguiente tick para que formData se actualice
+      setTimeout(() => {
+        const timeError = validateTimeRange();
+        setErrors((prev) => ({ ...prev, timeRange: timeError }));
+      }, 0);
+    }
   };
+
+  const isFormValid = useCallback(() => {
+    const fieldErrors = {};
+    Object.keys(formData).forEach((key) => {
+      const error = validateField(key, formData[key]);
+      if (error) fieldErrors[key] = error;
+    });
+    const timeError = validateTimeRange();
+    if (timeError) fieldErrors.timeRange = timeError;
+    
+    setErrors(fieldErrors);
+    return Object.keys(fieldErrors).length === 0;
+  }, [formData, validateField, validateTimeRange]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!isFormValid()) {
+      showToast("Por favor corrige los errores del formulario", "error");
+      return;
+    }
+
     setLoading(true);
 
-    const startTime = convert12hTo24h(
-      formData.startHour,
-      formData.startMinute,
-      formData.startAmPm,
-    );
-    const endTime = convert12hTo24h(
-      formData.endHour,
-      formData.endMinute,
-      formData.endAmPm,
-    );
+    const startTime = getStartTime();
+    const endTime = getEndTime();
 
     let hours = null;
     if (!isNewYear || formData.manualHours) {
@@ -169,29 +246,23 @@ function ActivityForm({ onActivityCreated, onActivityUpdated, showToast, activit
   };
 
   const resetForm = () => {
-    setFormData({
-      name: "",
-      date: "",
-      startHour: "8",
-      startMinute: "00",
-      startAmPm: "AM",
-      endHour: "5",
-      endMinute: "00",
-      endAmPm: "PM",
-      location: "",
-      cycle: "",
-      manualHours: "",
-      activity_type: "",
-    });
+    setFormData(initialForm);
+    setErrors({});
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const calculateHours = (startTime, endTime) => {
+    const start = new Date(`2000-01-01T${startTime}`);
+    const end = new Date(`2000-01-01T${endTime}`);
+    let diff = end - start;
+    if (diff < 0) diff += 24 * 60 * 60 * 1000;
+    return Math.round((diff / (1000 * 60 * 60)) * 100) / 100;
   };
+
+  const inputErrorClass = (fieldName) => errors[fieldName] ? "input-error" : "";
 
   return (
     <div className="modal-form-wrapper">
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} noValidate>
         <div className="form-group">
           <label htmlFor="name">Nombre de la Actividad</label>
           <input
@@ -200,8 +271,10 @@ function ActivityForm({ onActivityCreated, onActivityUpdated, showToast, activit
             name="name"
             value={formData.name}
             onChange={handleChange}
+            className={inputErrorClass("name")}
             required
           />
+          {errors.name && <span className="field-error">{errors.name}</span>}
         </div>
 
         <div className="form-group">
@@ -212,8 +285,10 @@ function ActivityForm({ onActivityCreated, onActivityUpdated, showToast, activit
             name="date"
             value={formData.date}
             onChange={handleChange}
+            className={inputErrorClass("date")}
             required
           />
+          {errors.date && <span className="field-error">{errors.date}</span>}
         </div>
 
         {isNewYear && (
@@ -228,16 +303,17 @@ function ActivityForm({ onActivityCreated, onActivityUpdated, showToast, activit
               value={formData.activity_type}
               onChange={handleChange}
               required={isNewYear}
-              className="select-new-year"
+              className={`select-new-year ${inputErrorClass("activity_type")}`}
             >
               <option value="">-- Seleccionar Tipo --</option>
               <option value="GRANDE">Actividad Grande</option>
               <option value="PEQUEÑA">Actividad Pequeña</option>
             </select>
+            {errors.activity_type && <span className="field-error">{errors.activity_type}</span>}
           </div>
         )}
 
-        <div className="form-row">
+        <div className={`form-row ${errors.timeRange ? "time-error" : ""}`}>
           <div className="form-group">
             <label>Hora de Entrada {isNewYear && "(Opcional)"}</label>
             <div className="time-input-12h">
@@ -318,6 +394,9 @@ function ActivityForm({ onActivityCreated, onActivityUpdated, showToast, activit
             </div>
           </div>
         </div>
+        {errors.timeRange && (
+          <span className="field-error time-range-error">{errors.timeRange}</span>
+        )}
 
         <div className="form-group">
           <label htmlFor="location">Lugar</label>
@@ -327,8 +406,10 @@ function ActivityForm({ onActivityCreated, onActivityUpdated, showToast, activit
             name="location"
             value={formData.location}
             onChange={handleChange}
+            className={inputErrorClass("location")}
             required
           />
+          {errors.location && <span className="field-error">{errors.location}</span>}
         </div>
 
         <div className="form-group">
@@ -338,6 +419,7 @@ function ActivityForm({ onActivityCreated, onActivityUpdated, showToast, activit
             name="cycle"
             value={formData.cycle}
             onChange={handleChange}
+            className={inputErrorClass("cycle")}
             required
           >
             <option value="">Seleccionar ciclo</option>
@@ -347,6 +429,7 @@ function ActivityForm({ onActivityCreated, onActivityUpdated, showToast, activit
               </option>
             ))}
           </select>
+          {errors.cycle && <span className="field-error">{errors.cycle}</span>}
         </div>
 
         <div className="form-group">
@@ -361,19 +444,20 @@ function ActivityForm({ onActivityCreated, onActivityUpdated, showToast, activit
             onChange={handleChange}
             step="0.1"
             min="0"
+            className={inputErrorClass("manualHours")}
             placeholder={
               isNewYear
                 ? "Puntos extra o tiempo"
                 : "Dejar vacío para cálculo automático"
             }
           />
+          {errors.manualHours && <span className="field-error">{errors.manualHours}</span>}
         </div>
 
         <button
           type="submit"
           className="btn-primary"
           disabled={loading}
-          style={{ transition: "transform 0.2s" }}
         >
           {loading
             ? "Guardando..."
