@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-function ActivityForm({ onActivityCreated, onActivityUpdated, showToast, activityToEdit, onCancelEdit }) {
+function ActivityForm({ onActivityCreated, onActivityUpdated, showToast, activityToEdit, onClose }) {
   const [formData, setFormData] = useState({
     name: "",
     date: "",
@@ -190,12 +190,8 @@ function ActivityForm({ onActivityCreated, onActivityUpdated, showToast, activit
   };
 
   return (
-    <section id="activity-form-section" className="form-section">
-      <h2 style={{ transition: "all 0.3s ease" }}>
-        {editingId ? "Editar Actividad" : "Registrar Nueva Actividad"}
-      </h2>
-
-      <form onSubmit={handleSubmit} style={{ animation: "fadeIn 0.5s ease" }}>
+    <div className="modal-form-wrapper">
+      <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="name">Nombre de la Actividad</label>
           <input
@@ -392,66 +388,15 @@ function ActivityForm({ onActivityCreated, onActivityUpdated, showToast, activit
             onClick={() => {
               setEditingId(null);
               resetForm();
-              if (onCancelEdit) onCancelEdit();
+              if (onClose) onClose();
             }}
-            style={{
-              backgroundColor: "#f3f4f6",
-              color: "#4b5563",
-              border: "1px solid #d1d5db",
-              borderRadius: "8px",
-              padding: "0.75rem 1.5rem",
-              fontSize: "1rem",
-              fontWeight: "500",
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-              width: "100%",
-              marginTop: "0.5rem",
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = "#e5e7eb";
-              e.target.style.borderColor = "#9ca3af";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = "#f3f4f6";
-              e.target.style.borderColor = "#d1d5db";
-            }}
+            className="btn-cancel-edit"
           >
             Cancelar edición
           </button>
         )}
       </form>
-
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-        @keyframes slideDown {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .btn-primary:active {
-          transform: scale(0.98);
-        }
-        .select-new-year {
-          width: 100%;
-          padding: 10px;
-          border: 2px solid #0070f3;
-          border-radius: 5px;
-          background: #f0f7ff;
-        }
-      `}</style>
-    </section>
+    </div>
   );
 }
 

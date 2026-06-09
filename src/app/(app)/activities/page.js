@@ -5,13 +5,15 @@ import { useRouter } from "next/navigation";
 import ActivityForm from "@/components/ActivityForm";
 import ActivitiesList from "@/components/ActivitiesList";
 import Toast from "@/components/Toast";
+import Modal from "@/components/Modal";
 import { useActivities } from "@/hooks/useActivities";
 
 export default function ActivitiesPage() {
   const router = useRouter();
   const { activities, reload } = useActivities();
   const [toast, setToast] = useState(null);
-  const [activityToEdit, setActivityToEdit] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingActivity, setEditingActivity] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -25,36 +27,36 @@ export default function ActivitiesPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
+  const handleOpenCreate = () => {
+    setEditingActivity(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (activity) => {
+    setEditingActivity(activity);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingActivity(null);
+  };
+
   const handleActivityCreated = () => {
     reload();
     showToast("Actividad registrada correctamente", "success");
+    handleCloseModal();
   };
 
   const handleActivityUpdated = () => {
     reload();
     showToast("Actividad actualizada correctamente", "success");
-    setActivityToEdit(null);
+    handleCloseModal();
   };
 
   const handleActivityDeleted = () => {
     reload();
     showToast("Actividad eliminada correctamente", "success");
-  };
-
-  const handleActivityEdit = (activity) => {
-    setActivityToEdit(activity);
-    setTimeout(() => {
-      const formSection = document.getElementById("activity-form-section");
-      if (formSection) {
-        formSection.scrollIntoView({ behavior: "smooth", block: "center" });
-        const firstInput = formSection.querySelector("input");
-        if (firstInput) firstInput.focus();
-      }
-    }, 100);
-  };
-
-  const handleCancelEdit = () => {
-    setActivityToEdit(null);
   };
 
   return (
@@ -64,19 +66,29 @@ export default function ActivitiesPage() {
         <p>Registra, edita y gestiona tus actividades de voluntariado</p>
       </header>
 
-      <ActivityForm
-        onActivityCreated={handleActivityCreated}
-        onActivityUpdated={handleActivityUpdated}
-        showToast={showToast}
-        activityToEdit={activityToEdit}
-        onCancelEdit={handleCancelEdit}
-      />
       <ActivitiesList
         activities={activities}
         onActivityDeleted={handleActivityDeleted}
-        onActivityEdit={handleActivityEdit}
+        onActivityEdit={handleOpenEdit}
+        onCreateClick={handleOpenCreate}
         showToast={showToast}
       />
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        title={editingActivity ? "Editar Actividad" : "Registrar Nueva Actividad"}
+        size="large"
+      >
+        <ActivityForm
+          key={editingActivity ? editingActivity.id : "create"}
+          onActivityCreated={handleActivityCreated}
+          onActivityUpdated={handleActivityUpdated}
+          showToast={showToast}
+          activityToEdit={editingActivity}
+          onClose={handleCloseModal}
+        />
+      </Modal>
 
       {toast && (
         <Toast
