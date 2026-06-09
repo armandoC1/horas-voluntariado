@@ -1,5 +1,5 @@
-import { getUserFromToken } from "../../../../../lib/auth"
-import { requireAuth } from "../../../../../lib/api-auth"
+import { getUserFromToken } from "@/lib/auth"
+import { requireAuth } from "@/lib/api-auth"
 
 export async function GET(request) {
   try {

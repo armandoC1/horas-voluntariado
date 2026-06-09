@@ -1,7 +1,7 @@
-import { generateToken } from "../../../../../lib/auth";
-import { query } from "../../../../../lib/db";
-import { verifyOTPCode } from "../../../../../lib/otp";
-import { verifyOtpSchema, validate } from "../../../../../lib/schemas";
+import { generateToken } from "@/lib/auth";
+import { query } from "@/lib/db";
+import { verifyOTPCode } from "@/lib/otp";
+import { verifyOtpSchema, validate } from "@/lib/schemas";
 
 export async function POST(request) {
   try {

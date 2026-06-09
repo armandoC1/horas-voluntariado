@@ -1,5 +1,5 @@
-import { query } from "../../../../lib/db";
-import { requireAuth, createErrorResponse, createSuccessResponse } from "../../../../lib/api-auth";
+import { query } from "@/lib/db";
+import { requireAuth, createErrorResponse, createSuccessResponse } from "@/lib/api-auth";
 
 export async function GET(request) {
   try {

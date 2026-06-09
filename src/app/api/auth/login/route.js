@@ -1,8 +1,8 @@
-import { verifyPassword } from "../../../../../lib/auth";
-import { query } from "../../../../../lib/db";
-import { generateAndSendOtp } from "../../../../../lib/otp";
-import { checkRateLimit, loginLimiter } from "../../../../../lib/rate-limit";
-import { loginSchema, validate } from "../../../../../lib/schemas";
+import { verifyPassword } from "@/lib/auth";
+import { query } from "@/lib/db";
+import { generateAndSendOtp } from "@/lib/otp";
+import { checkRateLimit, loginLimiter } from "@/lib/rate-limit";
+import { loginSchema, validate } from "@/lib/schemas";
 
 export async function POST(request) {
   const ip = request.headers.get('x-forwarded-for') || 'unknown';

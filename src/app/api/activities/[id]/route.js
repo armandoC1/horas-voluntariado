@@ -1,5 +1,5 @@
-import { query } from "../../../../../lib/db";
-import { requireAuth } from "../../../../../lib/api-auth";
+import { query } from "@/lib/db";
+import { requireAuth } from "@/lib/api-auth";
 
 export async function PUT(request, { params }) {
   try {
