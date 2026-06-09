@@ -4,7 +4,12 @@ import { useState, useEffect } from "react";
 
 const HOURS_GOAL = 60;
 const NEW_SCHEMA_YEAR = 2026;
-const REQUIRED_ACTIVITIES = ["FERIA", "ENTRENO", "FESTIVAL"];
+
+const ACTIVITY_REQUIREMENTS = {
+  GRANDE: 2,
+  PEQUEÑA: 1,
+};
+const TOTAL_REQUIRED_ACTIVITIES = 3; 
 
 function Dashboard({ activities }) {
   const [selectedCycle, setSelectedCycle] = useState(null);
@@ -41,15 +46,28 @@ function Dashboard({ activities }) {
 
   const getActivityProgress = (cycle) => {
     const cycleActivities = activities.filter((a) => a.cycle === cycle);
-    const completedTypes = cycleActivities.map((a) =>
-      a.activity_type?.toUpperCase(),
-    );
-    const count = REQUIRED_ACTIVITIES.filter((type) =>
-      completedTypes.includes(type),
-    ).length;
+    
+    // Contar cuántas de cada tipo hay
+    const counts = {
+      GRANDE: 0,
+      PEQUEÑA: 0,
+    };
+    
+    cycleActivities.forEach((a) => {
+      const type = a.activity_type?.toUpperCase();
+      if (type === "GRANDE") counts.GRANDE++;
+      if (type === "PEQUEÑA") counts.PEQUEÑA++;
+    });
+    
+    // Calcular cuántas se han completado (sin exceder el requerimiento)
+    const completed = 
+      Math.min(counts.GRANDE, ACTIVITY_REQUIREMENTS.GRANDE) +
+      Math.min(counts.PEQUEÑA, ACTIVITY_REQUIREMENTS.PEQUEÑA);
+    
     return {
-      count,
-      percentage: (count / REQUIRED_ACTIVITIES.length) * 100,
+      completed,
+      counts,
+      percentage: (completed / TOTAL_REQUIRED_ACTIVITIES) * 100,
     };
   };
 
@@ -97,22 +115,18 @@ function Dashboard({ activities }) {
               <p>
                 Actividades completadas:{" "}
                 <span>
-                  {activityProgress.count} de {REQUIRED_ACTIVITIES.length}
+                  {activityProgress.completed} de {TOTAL_REQUIRED_ACTIVITIES}
                 </span>
               </p>
               <p style={{ fontSize: "0.85em", marginTop: "5px", opacity: 0.8 }}>
-                {REQUIRED_ACTIVITIES.map((type) => {
-                  const done = activities.some(
-                    (a) =>
-                      a.cycle === currentCycle &&
-                      a.activity_type?.toUpperCase() === type,
-                  );
-                  return (
-                    <span key={type} style={{ marginRight: "10px" }}>
-                      {done ? "✅" : "⚪"} {type}
-                    </span>
-                  );
-                })}
+                <span style={{ marginRight: "15px" }}>
+                  {activityProgress.counts.GRANDE >= ACTIVITY_REQUIREMENTS.GRANDE ? "✅" : "⚪"} 
+                  {activityProgress.counts.GRANDE}/{ACTIVITY_REQUIREMENTS.GRANDE} Grande
+                </span>
+                <span>
+                  {activityProgress.counts.PEQUEÑA >= ACTIVITY_REQUIREMENTS.PEQUEÑA ? "✅" : "⚪"} 
+                  {activityProgress.counts.PEQUEÑA}/{ACTIVITY_REQUIREMENTS.PEQUEÑA} Pequeña
+                </span>
               </p>
             </>
           )}
@@ -136,7 +150,7 @@ function Dashboard({ activities }) {
                 onClick={() => setSelectedCycle(cycle)}
               >
                 Ciclo {cycle}:{" "}
-                {isNew ? `${act.count}/3 Act.` : `${hours.toFixed(1)}h`}
+                {isNew ? `${act.completed}/${TOTAL_REQUIRED_ACTIVITIES} Act.` : `${hours.toFixed(1)}h`}
               </button>
             );
           })}

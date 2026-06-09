@@ -189,9 +189,8 @@ function ActivityForm({ onActivityCreated, onActivityUpdated, showToast }) {
               className="select-new-year"
             >
               <option value="">-- Seleccionar Tipo --</option>
-              <option value="FERIA">Feria</option>
-              <option value="ENTRENO">Entreno</option>
-              <option value="FESTIVAL">Festival</option>
+              <option value="GRANDE">Actividad Grande</option>
+              <option value="PEQUEÑA">Actividad Pequeña</option>
             </select>
           </div>
         )}

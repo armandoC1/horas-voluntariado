@@ -53,7 +53,7 @@ export const activity2026Schema = z.object({
   cycle: z.number().int().min(1).max(20),
   hours: z.number().min(0).max(24).optional().nullable(),
   manual_hours: z.boolean().default(false),
-  activity_type: z.enum(["FERIA", "ENTRENO", "FESTIVAL"]),
+  activity_type: z.enum(["GRANDE", "PEQUEÑA"]),
 });
 
 // Función helper para validar
